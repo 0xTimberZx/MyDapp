@@ -352,7 +352,6 @@ async function getHistory(filteredEvents = null) {
 
             // Read from StringCompiler MessagePublished events
             let compilerEvents = [];
-            let helloWorldEvents = [];
 
             // Retry logic
             let retries = 3;
@@ -367,13 +366,7 @@ async function getHistory(filteredEvents = null) {
                         currentBlock
                     );
 
-                    // Get direct HelloWorld events too
-                    const hwFilter = contract.filters.MessageUpdated();
-                    helloWorldEvents = await contract.queryFilter(
-                        hwFilter,
-                        fromBlock,
-                        currentBlock
-                    );
+                     
                     break;
                 } catch (rpcErr) {
                     retries--;
@@ -397,19 +390,9 @@ async function getHistory(filteredEvents = null) {
                 type: "compiled"
             }));
 
-            // Normalize HelloWorld direct events
-            const normalizedHW = helloWorldEvents.map(event => ({
-                sender: event.args.sender,
-                message: event.args.newMessage,
-                timestamp: event.args.timestamp,
-                txHash: event.transactionHash,
-                blockNumber: event.blockNumber,
-                tokensCost: null,
-                type: "direct"
-            }));
 
             // Combine and sort by block number newest first
-            events = [...normalizedCompiler, ...normalizedHW]
+            events = normalizedCompiler
                 .sort((a, b) => b.blockNumber - a.blockNumber);
         }
 
@@ -715,8 +698,12 @@ async function refreshCompilerState() {
             // Show preview
             document.getElementById("compiledPreview")
                 .classList.remove("hidden");
-            document.getElementById("compiledText").innerText =
-                compiledString;
+            // Show compiled string with segment count indicator
+        const segmentLabel = count > 1
+            ? "[" + count + " segments joined] "
+            : "[1 segment] ";
+        document.getElementById("compiledText").innerText =
+            segmentLabel + compiledString;
             document.getElementById("tokenCost").innerText =
                 formattedCost + " DAPP";
 
