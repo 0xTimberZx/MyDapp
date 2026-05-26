@@ -182,7 +182,7 @@ document.getElementById("newMessage")
     .addEventListener("input", function() {
         const count = this.value.length;
         document.getElementById("charCount")
-            .innerText = count + "/100";
+            .innerText = count + "/80";
 });
 
 // Compile Input Character Counter
@@ -445,8 +445,8 @@ async function getHistory(filteredEvents = null) {
             const metaDiv = document.createElement("div");
             metaDiv.className = "history-meta";
             metaDiv.innerHTML =
-                <span class="history-sender">${sender.slice(0,6)}...${sender.slice(-4)}</span> +
-                <span class="history-date">${timestamp}</span>;
+               `<span class="history-sender">${sender.slice(0,6)}...${sender.slice(-4)}</span>` +
+               `<span class="history-date">${timestamp}</span>`;
 
             const txLink = document.createElement("a");
             txLink.href = "https://sepolia.arbiscan.io/tx/" + txHash;
