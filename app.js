@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
 
 // HelloWorld Contract
-const CONTRACT_ADDRESS = "0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d";
+const CONTRACT_ADDRESS = "0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6";
 
 // DAPP Token Contract
 const TOKEN_ADDRESS = "0xF59f7408AF62F259bc09818d1B20c27bB412a94d";
