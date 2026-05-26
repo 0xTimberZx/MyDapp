@@ -3,7 +3,7 @@
 ## Smart Contract
 - Contract Name: HelloWorld
 - Network: Arbitrum Sepolia
-- Contract Address: (New) 0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d
+- Contract Address: (New) 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
 - Deployed: Day 14
 
 ## Wallet Info
@@ -15,7 +15,7 @@
 ## GitHub
 - Repo: https://github.com/0xTimberzx/mydapp
 - GitHub Pages URL: (https://0xtimberzx.github.io/MyDapp/)
-- Sepolia Testnet URL: https://sepolia.arbiscan.io/address/0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d
+- Sepolia Testnet URL: https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
 - Gist URL : https://gist.github.com/0xTimberZx/c7f0b7d3d7a4938bd983dd49a81c3ce4
 ## Progress
 - [x] Day 1 - Set up Buffer Editor and GitHub
@@ -27,7 +27,7 @@
 ## Golden Version — Day 6 Complete
 - Date: May 2026
 - Commit: GOLDEN VERSION - fully working DApp
-- Contracts: 0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d [HelloWorld]
+- Contracts: 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6 [HelloWorld]
 - Network: Arbitrum Sepolia
 - Chain ID: 421614
 
@@ -47,6 +47,7 @@
 - HelloWorld: 0x0adC83db21FCfdBD0e1E9224b6C2643b8A2c60a6
 - HelloWorld Compiling: 0x3c3F2183F81409eBf8C804FffD52347F822E7318
 - HelloWorld Compiling fixed: 0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d
+- HelloWorld Compiling immutable: 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
 - DAppToken[DUBB]: 0xaf3893891EE1ecE6869B6Dcc4d0880062d4755E8
 - DAppToken[DUBB](new): 0xF59f7408AF62F259bc09818d1B20c27bB412a94d
 - StringCompiler(test): 0x07e07b5E187DAA95637b556e86557518C94B72cd
