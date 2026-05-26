@@ -1,0 +1,59 @@
+{
+	"compiler": {
+		"version": "0.8.34+commit.80d5c536"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "newMessage",
+						"type": "string"
+					}
+				],
+				"name": "updateMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"stringCompiler.sol": "IHelloWorld"
+		},
+		"evmVersion": "osaka",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"stringCompiler.sol": {
+			"keccak256": "0x3b31d56cddee9998d213da5f27f2ec89107d7cdac66a302718aa21a41a0908d1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a706f4af3fc8f88c3cba72cb7272479779c43daf8f4050dd3bceee7892748267",
+				"dweb:/ipfs/QmWPzDEcLk21JvXRyo2RpdYX21bNicbHLhv7VmRawXceoJ"
+			]
+		}
+	},
+	"version": 1
+}

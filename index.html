@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My First DApp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <h1>🌐 Dapp-Me</h1>
+            <p>A decentralized message board on the blockchain</p>
+            <div class="network-badge">
+                Arbitrum Sepolia
+            </div>
+        </div>
+
+        <div id="walletSection">
+            <button id="connectBtn" onclick="connectWallet()">
+                🦊 Connect Wallet
+            </button>
+            <button id="disconnectBtn"
+                onclick="disconnectWallet()"
+                class="hidden">
+                🔌 Disconnect
+            </button>
+        </div>
+
+        <div id="walletInfo" class="hidden">
+            <div class="wallet-card">
+                <span id="walletLabel" class="wallet-label">
+                    0.0000 ETH
+                </span>
+                <span id="walletAddress">...</span>
+                <button 
+                    onclick="refreshBalance()" 
+                    class="balance-refresh-btn">
+                    🔄
+                </button>
+            </div>
+        </div>
+        
+        <!-- Token Balance Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🪙 DAPP Token Balance</h2>
+                <button onclick="refreshTokenBalance()"
+                    class="secondary-btn refresh-btn">
+                    🔄
+                </button>
+            </div>
+            <div class="token-balance-display">
+                <span id="tokenBalance">Connect wallet to load...</span>
+                <span class="token-symbol">DAPP</span>
+            </div>
+            <div id="approvalStatus" class="approval-status">
+                Approval status unknown
+            </div>
+            <button onclick="approveTokens()" id="approveBtn">
+                ✅ Approve DAPP Tokens
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>📖 Current Message</h2>
+                <div id="spinner" class="spinner hidden"></div>
+            </div>
+            <div id="currentMessage" class="message-display">
+                Connect wallet to load...
+            </div>
+            <button onclick="getMessage()" class="secondary-btn">
+                🔮 Get Message
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>✏️ Update Message</h2>
+            <input
+                type="text"
+                id="newMessage"
+                placeholder="Type a new message..."
+                maxlength="80"
+            />
+            <div id="charCount" class="char-count">0/80</div>
+            <button onclick="updateMessage()" id="updateBtn">
+                ⛓️ Update on Blockchain
+            </button>
+        </div>
+        
+       <!-- String Compiler Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>⚙️ String Compiler</h2>
+                <span id="compileCount" class="compile-badge">
+                    0 segments
+                </span>
+            </div>
+            <input
+                type="text"
+                id="compileInput"
+                placeholder="Type a string segment..."
+                maxlength="80"
+            />
+            <div id="compileCharCount" class="char-count">0/80</div>
+            <button onclick="compileString()" id="compileBtn">
+                ⚙️ Compile Segment (Free)
+            </button>
+            <div id="compiledPreview" class="compiled-preview hidden">
+                <p class="preview-label">📋 Current Compiled String:</p>
+                <div id="compiledText" class="compiled-text"></div>
+                <div class="token-cost-row">
+                    <span class="cost-label">Token cost to publish:</span>
+                    <span id="tokenCost" class="cost-value">0 DAPP</span>
+                </div>
+            </div>
+        </div> 
+        
+        <!-- Publish Message Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🚀 Publish Message</h2>
+            </div>
+            <div id="publishPreview" class="message-display">
+                Compile segments first...
+            </div>
+            <div class="publish-cost-row">
+                <span class="cost-label">Total cost:</span>
+                <span id="publishCost" class="cost-value">0 DAPP</span>
+            </div>
+            <button onclick="publishMessage()" id="publishBtn">
+                📝 Publish to Blockchain
+            </button>
+            <button onclick="clearCompiled()"
+                id="clearCompiledBtn"
+                class="secondary-btn"
+                style="margin-top: 8px;">
+                🗑️ Clear Compiled String
+            </button>
+        </div>
+
+        <div id="statusBox" class="hidden">
+            <div id="status"></div>
+            <a id="txLink" href="#" target="_blank" class="hidden">
+                View on Arbiscan →
+            </a>
+        </div>
+
+        <div class="card">
+    <div class="card-header">
+        <h2>📜 Transaction History</h2>
+        <button onclick="getHistory()"
+            class="secondary-btn refresh-btn">
+            🔄
+        </button>
+    </div>
+    <div class="filter-section">
+        <input
+            type="text"
+            id="filterAddress"
+            placeholder="Filter by full wallet address 0x..."
+            maxlength="42"
+        />
+        <div class="filter-buttons">
+            <button onclick="filterHistory()"
+                id="filterBtn"
+                class="filter-btn">
+                🔍 Filter
+            </button>
+            <button onclick="clearFilter()"
+                id="clearBtn"
+                class="clear-btn">
+                ✖ Clear
+            </button>
+        </div>
+    </div>
+    <div id="filterStatus"></div>
+    <div id="historyList">
+        Connect wallet to load history...
+    </div>
+</div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
