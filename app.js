@@ -779,7 +779,7 @@ async function publishMessage() {
 
        showStatus("✅ Message published successfully!", true);
 document.getElementById("publishBtn").innerText = 
-            "🚀 Publish to Blockchain";
+            "📝 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
 
         await getMessage();
@@ -789,7 +789,7 @@ document.getElementById("publishBtn").innerText =
 
     } catch (err) {
         document.getElementById("publishBtn").innerText =
-            "🚀 Publish to Blockchain";
+            "📝 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
         showStatus("❌ " + err.message, false);
     }
