@@ -11,6 +11,7 @@
 - Network: Arbitrum Sepolia
 - Chain ID: 421614
 - https://api-sepolia.arbiscan.io/api
+- CITYCHAIN ETHERSCAN OWNER
 ## GitHub
 - Repo: https://github.com/0xTimberzx/mydapp
 - GitHub Pages URL: (https://0xtimberzx.github.io/MyDapp/)
