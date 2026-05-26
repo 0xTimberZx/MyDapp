@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 contract HelloWorld {
 
@@ -7,12 +7,17 @@ contract HelloWorld {
     address public lastSender;
     uint public lastUpdated;
     address public compiler;
-    address public owner;
+    address public immutable owner;
 
     event MessageUpdated(
         address indexed sender,
         string newMessage,
         uint timestamp
+    );
+
+    event CompilerUpdated(
+        address indexed oldCompiler,
+        address indexed newCompiler
     );
 
     constructor() {
@@ -22,7 +27,6 @@ contract HelloWorld {
         owner = msg.sender;
     }
 
-    // Only compiler contract can update message
     modifier onlyCompiler() {
         require(
             msg.sender == compiler || msg.sender == owner,
@@ -31,10 +35,11 @@ contract HelloWorld {
         _;
     }
 
-    // Owner sets compiler address after deployment
-    function setCompiler(address _compiler) public {
+    function setCompiler(address newCompiler) public {
         require(msg.sender == owner, "Not owner");
-        compiler = _compiler;
+        require(newCompiler != address(0), "Zero address not allowed");
+        emit CompilerUpdated(compiler, newCompiler);
+        compiler = newCompiler;
     }
 
     function updateMessage(
