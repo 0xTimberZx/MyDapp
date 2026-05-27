@@ -67,7 +67,7 @@ full transaction history — all from a mobile browser.
 ### StringCompiler
 | Detail | Value |
 |---|---|
-| Address | 0xDf1BC53BF7407DE82d3e74b37c74C736470F1b38 |
+| Address | 0x0C91A46e8EBb65eE10eb07ED58eD0f4a6544143b |
 | Price Per Compile | 10 DAPP (first segment free) |
 | Explorer | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xDf1BC53BF7407DE82d3e74b37c74C736470F1b38) |
 | Verification | [View on Sourcify](https://repo.sourcify.dev/421614/0xDf1BC53BF7407DE82d3e74b37c74C736470F1b38) |
