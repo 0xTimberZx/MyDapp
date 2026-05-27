@@ -51,8 +51,8 @@ full transaction history — all from a mobile browser.
 | Detail | Value |
 |---|---|
 | Address | 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6 |
-| Explorer | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d) |
-| Verification | [View on Sourcify](https://repo.sourcify.dev/421614/0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d) |
+| Explorer | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
+| Verification | [View on Sourcify](https://repo.sourcify.dev/421614/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
 
 ### DAPP Token (ERC-20)
 | Detail | Value |
