@@ -15,7 +15,9 @@
 ## GitHub
 - Repo: https://github.com/0xTimberzx/mydapp
 - GitHub Pages URL: (https://0xtimberzx.github.io/MyDapp/)
-- Sepolia Testnet URL: https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
+- Sepolia Testnet URL: https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6,
+  https://arbitrum-sepolia.blockscout.com/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
+     
 - Gist URL : https://gist.github.com/0xTimberZx/c7f0b7d3d7a4938bd983dd49a81c3ce4
 ## Progress
 - [x] Day 1 - Set up Buffer Editor and GitHub
