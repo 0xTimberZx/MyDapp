@@ -57,5 +57,12 @@
 - StringCompiler(new) : 0xDf1BC53BF7407DE82d3e74b37c74C736470F1b38
 - StringCompiler(fin) : 0x0C91A46e8EBb65eE10eb07ED58eD0f4a6544143b
 
+
+## Final Contract Addresses — Verified on Sourcify
+
+- HelloWorld: 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6
+- DAppToken: 0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63
+- StringCompiler: 0x63516F99D6e82cC8372198b8248f3B3aE001bfb6
+
 - HW.sol = setCompiler low level call 0x8cb8ecec0000000000000000000000000c91a46e8ebb65ee10eb07ed58ed0f4a6544143b
 
