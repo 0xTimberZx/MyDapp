@@ -280,6 +280,8 @@ compilerContract = new ethers.Contract(COMPILER_ADDRESS, COMPILER_ABI, signer);
         document.getElementById("connectBtn").disabled = false;
         document.getElementById("disconnectBtn")
             .classList.remove("hidden");
+        document.getElementById("switchBtn")
+            .classList.remove("hidden");
 
         showStatus("✅ Wallet connected successfully!", true);
 
@@ -352,12 +354,14 @@ async function getHistory(filteredEvents = null) {
 
             // Read from StringCompiler MessagePublished events
             let compilerEvents = [];
+            let helloWorldEvents = [];
 
             // Retry logic
             let retries = 3;
             while (retries > 0) {
                 try {
-                    // Get StringCompiler events
+                
+                // Get StringCompiler events
                     const compilerFilter = compilerContract
                         .filters.MessagePublished();
                     compilerEvents = await compilerContract.queryFilter(
@@ -366,7 +370,14 @@ async function getHistory(filteredEvents = null) {
                         currentBlock
                     );
 
-                     
+                    // Get direct HelloWorld events
+                    const hwFilter = contract.filters.MessageUpdated();
+                    helloWorldEvents = await contract.queryFilter(
+                        hwFilter,
+                        fromBlock,
+                        currentBlock
+                    );
+
                     break;
                 } catch (rpcErr) {
                     retries--;
@@ -383,16 +394,26 @@ async function getHistory(filteredEvents = null) {
             const normalizedCompiler = compilerEvents.map(event => ({
                 sender: event.args.user,
                 message: event.args.finalMessage,
-                timestamp: event.args.totalSegments,
+                timestamp: event.args.tokensCost,
                 txHash: event.transactionHash,
                 blockNumber: event.blockNumber,
                 tokensCost: event.args.tokensCost,
                 type: "compiled"
             }));
 
+            // Normalize HelloWorld direct events
+            const normalizedHW = helloWorldEvents.map(event => ({
+                sender: event.args.sender,
+                message: event.args.newMessage,
+                timestamp: event.args.timestamp,
+                txHash: event.transactionHash,
+                blockNumber: event.blockNumber,
+                tokensCost: null,
+                type: "direct"
+            }));
 
             // Combine and sort by block number newest first
-            events = normalizedCompiler
+            events = [...normalizedCompiler, ...normalizedHW]
                 .sort((a, b) => b.blockNumber - a.blockNumber);
         }
 
@@ -832,17 +853,54 @@ async function filterHistory() {
         document.getElementById("filterBtn").disabled = true;
         document.getElementById("filterStatus").innerText = "";
 
-        const filter = contract.filters.MessageUpdated();
         const currentBlock = await provider.getBlockNumber();
         const fromBlock = Math.max(0, currentBlock - 50000);
-        const events = await contract.queryFilter(
-            filter,
+
+        // Search StringCompiler events
+        const compilerFilter = compilerContract.filters.MessagePublished();
+        const compilerEvents = await compilerContract.queryFilter(
+            compilerFilter,
             fromBlock,
             currentBlock
         );
 
-        const filtered = events.filter(event =>
-            event.args.sender.toLowerCase() ===
+        // Search HelloWorld direct events
+        const hwFilter = contract.filters.MessageUpdated();
+        const hwEvents = await contract.queryFilter(
+            hwFilter,
+            fromBlock,
+            currentBlock
+        );
+
+        // Normalize compiler events
+        const normalizedCompiler = compilerEvents.map(event => ({
+            sender: event.args.user,
+            message: event.args.finalMessage,
+            timestamp: event.args.tokensCost,
+            txHash: event.transactionHash,
+            blockNumber: event.blockNumber,
+            tokensCost: event.args.tokensCost,
+            type: "compiled"
+        }));
+
+        // Normalize HelloWorld events
+        const normalizedHW = hwEvents.map(event => ({
+            sender: event.args.sender,
+            message: event.args.newMessage,
+            timestamp: event.args.timestamp,
+            txHash: event.transactionHash,
+            blockNumber: event.blockNumber,
+            tokensCost: null,
+            type: "direct"
+        }));
+
+        // Combine all events
+        const allEvents = [...normalizedCompiler, ...normalizedHW]
+            .sort((a, b) => b.blockNumber - a.blockNumber);
+
+        // Filter by address
+        const filtered = allEvents.filter(event =>
+            event.sender.toLowerCase() ===
             filterAddress.toLowerCase()
         );
 
@@ -886,6 +944,61 @@ async function clearFilter() {
     }
 }
 
+// Switch Wallet
+async function switchWallet() {
+    if (typeof window.ethereum === "undefined") {
+        showStatus("⚠️ No wallet found.", false);
+        return;
+    }
+    try {
+        showStatus("🔄 Requesting wallet switch...", true);
+
+        // Request accounts triggers wallet picker on mobile
+        const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts"
+        });
+
+        if (!accounts || accounts.length === 0) {
+            showStatus("❌ No accounts found.", false);
+            return;
+        }
+
+        // Reinitialize with new account
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        tokenContract = new ethers.Contract(
+            TOKEN_ADDRESS, TOKEN_ABI, signer
+        );
+        compilerContract = new ethers.Contract(
+            COMPILER_ADDRESS, COMPILER_ABI, signer
+        );
+
+        const address = accounts[0];
+        const balance = await provider.getBalance(address);
+        const ethBalance = parseFloat(
+            ethers.utils.formatEther(balance)
+        ).toFixed(4);
+
+        document.getElementById("walletAddress").innerText =
+            address.slice(0, 6) + "..." + address.slice(-4);
+        document.getElementById("walletLabel").innerText =
+            ethBalance + " ETH";
+
+        showStatus("✅ Wallet switched to " +
+            address.slice(0,6) + "..." + address.slice(-4), true);
+
+        await getMessage();
+        await getHistory();
+        await refreshTokenBalance();
+        await refreshCompilerState();
+        await checkApproval();
+
+    } catch (err) {
+        showStatus("❌ " + err.message, false);
+    }
+}
+
 // Disconnect Wallet
 function disconnectWallet() {
     provider = null;
@@ -903,6 +1016,7 @@ function disconnectWallet() {
     document.getElementById("filterAddress").value = "";
     document.getElementById("filterStatus").innerText = "";
     document.getElementById("disconnectBtn").classList.add("hidden");
+    document.getElementById("switchBtn").classList.add("hidden");
     
     // Reset token and compiler state
     document.getElementById("tokenBalance").innerText =
@@ -963,5 +1077,6 @@ window.compileString = compileString;
 window.refreshCompilerState = refreshCompilerState;
 window.publishMessage = publishMessage;
 window.clearCompiled = clearCompiled;
+window.switchWallet = switchWallet;
 
 }); // End DOMContentLoaded

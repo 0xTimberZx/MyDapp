@@ -637,3 +637,23 @@ button:disabled {
     margin-bottom: 6px;
     font-weight: 500;
 }
+
+/* Switch Wallet Button */
+#switchBtn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #1f6feb;
+    background-color: transparent;
+    color: #58a6ff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background-color 0.2s ease;
+}
+
+#switchBtn:hover {
+    background-color: #1f6feb20;
+}
