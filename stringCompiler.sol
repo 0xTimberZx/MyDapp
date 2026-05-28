@@ -38,7 +38,8 @@ contract StringCompiler {
         address indexed user,
         string finalMessage,
         uint256 totalSegments,
-        uint256 tokensCost
+        uint256 tokensCost,
+        uint256 timestamp
     );
 
     constructor(
@@ -109,7 +110,8 @@ contract StringCompiler {
             msg.sender,
             finalMessage,
             compileCount[msg.sender],
-            totalCost
+            totalCost,
+            block.timestamp
         );
 
         // Reset user's compiled data
