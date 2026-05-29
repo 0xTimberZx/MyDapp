@@ -183,12 +183,16 @@ let tokenContract;
 let compilerContract;
 
 // Character Counter
-document.getElementById("newMessage")
-    .addEventListener("input", function() {
+const newMessageEl = document.getElementById("newMessage");
+if (newMessageEl) {
+    newMessageEl.addEventListener("input", function() {
         const count = this.value.length;
-        document.getElementById("charCount")
-            .innerText = count + "/80";
-});
+        const charCountEl = document.getElementById("charCount");
+        if (charCountEl) {
+            charCountEl.innerText = count + "/80";
+        }
+    });
+}
 
 // Compile Input Character Counter
 const compileInputEl = document.getElementById("compileInput");
@@ -961,8 +965,17 @@ async function switchWallet() {
         // Request accounts triggers wallet picker on mobile
         const accounts = await window.ethereum.request({
             method: "eth_requestAccounts"
+        }); 
+        
+        // Verify correct network after switch
+        const chainId = await window.ethereum.request({
+            method: "eth_chainId"
         });
-
+        if (chainId !== "0x66eee") {
+            showStatus("❌ Wrong network. Please switch to Arbitrum Sepolia.", false);
+            return;
+        }
+         
         if (!accounts || accounts.length === 0) {
             showStatus("❌ No accounts found.", false);
             return;
