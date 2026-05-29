@@ -1034,42 +1034,7 @@ async function switchWallet() {
             showStatus("❌ " + err.message, false);
         }
     }
-}
 
-        // Reinitialize with new account
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        tokenContract = new ethers.Contract(
-            TOKEN_ADDRESS, TOKEN_ABI, signer
-        );
-        compilerContract = new ethers.Contract(
-            COMPILER_ADDRESS, COMPILER_ABI, signer
-        );
-
-        const address = accounts[0];
-        const balance = await provider.getBalance(address);
-        const ethBalance = parseFloat(
-            ethers.utils.formatEther(balance)
-        ).toFixed(4);
-
-        document.getElementById("walletAddress").innerText =
-            address.slice(0, 6) + "..." + address.slice(-4);
-        document.getElementById("walletLabel").innerText =
-            ethBalance + " ETH";
-
-        showStatus("✅ Wallet switched to " +
-            address.slice(0,6) + "..." + address.slice(-4), true);
-
-        await getMessage();
-        await getHistory();
-        await refreshTokenBalance();
-        await refreshCompilerState();
-        await checkApproval();
-
-    } catch (err) {
-        showStatus("❌ " + err.message, false);
-    }
 }
 
 // Disconnect Wallet
