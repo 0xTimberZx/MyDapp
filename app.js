@@ -7,7 +7,7 @@ const CONTRACT_ADDRESS = "0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6";
 const TOKEN_ADDRESS = "0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63";
 
 // StringCompiler Contract
-const COMPILER_ADDRESS = "0x63516F99D6e82cC8372198b8248f3B3aE001bfb6";
+const COMPILER_ADDRESS = "0xf4C8CAE85Ee25e78B5b4b3e786a19191849ef359";
 
 const TOKEN_ABI = [
     {
@@ -110,6 +110,11 @@ const COMPILER_ABI = [
             {
                 "indexed": false,
                 "name": "tokensCost",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "timestamp",
                 "type": "uint256"
             }
         ],
@@ -394,7 +399,7 @@ async function getHistory(filteredEvents = null) {
             const normalizedCompiler = compilerEvents.map(event => ({
                 sender: event.args.user,
                 message: event.args.finalMessage,
-                timestamp: event.args.tokensCost,
+                timestamp: event.args.timestamp,
                 txHash: event.transactionHash,
                 blockNumber: event.blockNumber,
                 tokensCost: event.args.tokensCost,
@@ -876,7 +881,7 @@ async function filterHistory() {
         const normalizedCompiler = compilerEvents.map(event => ({
             sender: event.args.user,
             message: event.args.finalMessage,
-            timestamp: event.args.tokensCost,
+            timestamp: event.args.timestamp,
             txHash: event.transactionHash,
             blockNumber: event.blockNumber,
             tokensCost: event.args.tokensCost,
