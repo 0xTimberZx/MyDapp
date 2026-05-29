@@ -575,11 +575,11 @@ async function refreshTokenBalance() {
         const address = await signer.getAddress();
         const balance = await tokenContract.balanceOf(address);
         const formatted = parseFloat(
-            ethers.utils.formatEther(balance)
+            ethers.utils.formatUnits(balance, 18)
         ).toFixed(2);
         document.getElementById("tokenBalance").innerText = formatted;
     } catch (err) {
-        document.getElementById("tokenBalance").innerText = "Error";
+        document.getElementById("tokenBalance").innerText = "0.00";
         console.log("Token balance error:", err);
     }
 }
@@ -622,8 +622,10 @@ async function approveTokens() {
         document.getElementById("approveBtn").innerText = "Approving...";
         document.getElementById("approveBtn").disabled = true;
 
-        // Approve a large amount so user doesn't need to re-approve often
-        const approveAmount = ethers.utils.parseEther("1000000");
+        // Approve full wallet balance so user doesn't need to re-approve
+        const address = await signer.getAddress();
+        const currentBalance = await tokenContract.balanceOf(address);
+        const approveAmount = currentBalance;
 
         const feeData = await provider.getFeeData();
         const tx = await tokenContract.approve(
@@ -968,26 +970,71 @@ async function switchWallet() {
         return;
     }
     try {
-        showStatus("🔄 Requesting wallet switch...", true);
+        showStatus("🔄 Switching wallet...", true);
 
-        // Request accounts triggers wallet picker on mobile
-        const accounts = await window.ethereum.request({
-            method: "eth_requestAccounts"
-        }); 
-        
-        // Verify correct network after switch
-        const chainId = await window.ethereum.request({
-            method: "eth_chainId"
+        // Force wallet picker by requesting permissions fresh
+        await window.ethereum.request({
+            method: "wallet_requestPermissions",
+            params: [{ eth_accounts: {} }]
         });
-        if (chainId !== "0x66eee") {
-            showStatus("❌ Wrong network. Please switch to Arbitrum Sepolia.", false);
-            return;
-        }
-         
+
+        const accounts = await window.ethereum.request({
+            method: "eth_accounts"
+        });
+
         if (!accounts || accounts.length === 0) {
             showStatus("❌ No accounts found.", false);
             return;
         }
+
+        // Verify correct network
+        const chainId = await window.ethereum.request({
+            method: "eth_chainId"
+        });
+        if (chainId !== "0x66eee") {
+            showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
+            return;
+        }
+
+        // Reinitialize with new account
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        tokenContract = new ethers.Contract(
+            TOKEN_ADDRESS, TOKEN_ABI, signer
+        );
+        compilerContract = new ethers.Contract(
+            COMPILER_ADDRESS, COMPILER_ABI, signer
+        );
+
+        const address = accounts[0];
+        const balance = await provider.getBalance(address);
+        const ethBalance = parseFloat(
+            ethers.utils.formatEther(balance)
+        ).toFixed(4);
+
+        document.getElementById("walletAddress").innerText =
+            address.slice(0, 6) + "..." + address.slice(-4);
+        document.getElementById("walletLabel").innerText =
+            ethBalance + " ETH";
+
+        showStatus("✅ Switched to " +
+            address.slice(0,6) + "..." + address.slice(-4), true);
+
+        await getMessage();
+        await getHistory();
+        await refreshTokenBalance();
+        await refreshCompilerState();
+        await checkApproval();
+
+    } catch (err) {
+        if (err.code === 4001) {
+            showStatus("⚠️ Wallet switch cancelled.", false);
+        } else {
+            showStatus("❌ " + err.message, false);
+        }
+    }
+}
 
         // Reinitialize with new account
         provider = new ethers.providers.Web3Provider(window.ethereum);
