@@ -421,8 +421,16 @@ async function getHistory(filteredEvents = null) {
                 type: "direct"
             }));
 
-            // Combine and sort by block number newest first
-            events = [...normalizedCompiler, ...normalizedHW]
+            // Remove HelloWorld events that match compiler txHashes
+            const compilerTxHashes = new Set(
+                normalizedCompiler.map(e => e.txHash)
+            );
+            const filteredHW = normalizedHW.filter(
+                e => !compilerTxHashes.has(e.txHash)
+            );
+
+            // Combine and sort newest first
+            events = [...normalizedCompiler, ...filteredHW]
                 .sort((a, b) => b.blockNumber - a.blockNumber);
         }
 
