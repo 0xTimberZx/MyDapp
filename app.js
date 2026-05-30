@@ -979,10 +979,16 @@ async function switchWallet() {
 
         // Revoke current session to force fresh picker
         try {
-            await window.ethereum.request({
-                method: "wallet_revokePermissions",
-                params: [{ eth_accounts: {} }]
-            });
+            // Disconnect current session first
+        await window.ethereum.request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }]
+        });
+
+        // Then request fresh connection
+        await window.ethereum.request({
+            method: "eth_requestAccounts"
+        })
         } catch (revokeErr) {
             // Some wallets don't support revoke — continue anyway
             console.log("Revoke not supported:", revokeErr);
