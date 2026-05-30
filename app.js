@@ -537,36 +537,69 @@ async function updateMessage() {
             gasLimit: gasWithBuffer,
             maxFeePerGas: feeData.maxFeePerGas,
             maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+        });async function updateMessage() {
+    const newMsg = document.getElementById("newMessage").value;
+
+    if (!newMsg) {
+        showStatus("⚠️ Please type a message first!", false);
+        return;
+    }
+
+    if (newMsg.length > 80) {
+        showStatus("⚠️ Message exceeds 80 characters!", false);
+        return;
+    }
+
+    if (!provider) {
+        showStatus("⚠️ Wallet not connected!", false);
+        return;
+    }
+
+    try {
+        document.getElementById("updateBtn").innerText = "Sending... ⏳";
+        document.getElementById("updateBtn").disabled = true;
+        showSpinner(true);
+
+        const feeData = await provider.getFeeData();
+
+        // Step 1 — Compile the segment
+        showStatus("⏳ Step 1/2: Compiling segment...", true);
+        const compileTx = await compilerContract.compileString(newMsg, {
+            maxFeePerGas: feeData.maxFeePerGas,
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
         });
+        await compileTx.wait();
 
-        showStatus("⏳ Transaction sent! Confirming...", true);
-        await tx.wait();
+        // Step 2 — Publish through compiler (compiler calls HelloWorld)
+        showStatus("⏳ Step 2/2: Publishing to blockchain...", true);
+        const publishTx = await compilerContract.publishMessage({
+            maxFeePerGas: feeData.maxFeePerGas,
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+        });
+        await publishTx.wait();
 
-        const arbiscanUrl =
-            "https://sepolia.arbiscan.io/tx/" + tx.hash;
+        const arbiscanUrl = "https://sepolia.arbiscan.io/tx/" + publishTx.hash;
         document.getElementById("txLink").href = arbiscanUrl;
         document.getElementById("txLink").target = "_blank";
         document.getElementById("txLink").rel = "noopener noreferrer";
-        document.getElementById("txLink")
-            .classList.remove("hidden");
+        document.getElementById("txLink").classList.remove("hidden");
 
-        showStatus("✅ Message updated successfully!", true);
+        showStatus("✅ Message published successfully!", true);
 
         document.getElementById("newMessage").value = "";
         document.getElementById("charCount").innerText = "0/80";
-        document.getElementById("updateBtn").innerText =
-            "⛓️ Update on Blockchain";
+        document.getElementById("updateBtn").innerText = "⛓️ Update on Blockchain";
         document.getElementById("updateBtn").disabled = false;
-
         showSpinner(false);
 
         await getMessage();
         await getHistory();
-        await refreshBalance();
+        await refreshTokenBalance();
+        await refreshCompilerState();
+        await checkApproval();
 
     } catch (err) {
-        document.getElementById("updateBtn").innerText =
-            "⛓️ Update on Blockchain";
+        document.getElementById("updateBtn").innerText = "⛓️ Update on Blockchain";
         document.getElementById("updateBtn").disabled = false;
         showSpinner(false);
         showStatus("❌ " + err.message, false);
