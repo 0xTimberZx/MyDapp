@@ -1016,20 +1016,7 @@ async function switchWallet() {
             showStatus("⚠️ Switch failed. Try manually in your wallet.", false);
         }
     }
-}
-
-        // Update your UI state here...
-        showStatus("✅ Wallet switched!", true);
-
-    } catch (err) {
-        if (err.code === 4001) {
-            showStatus("❌ User rejected.", false);
-        } else {
-            showStatus("⚠️ Please switch accounts in your wallet manually.", false);
-        }
-    }
-}
-
+        
     // Request fresh connection — triggers popup (only once)
     const result = await window.ethereum.request({
     method: "wallet_requestPermissions",
