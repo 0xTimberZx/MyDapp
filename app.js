@@ -114,6 +114,11 @@ const COMPILER_ABI = [
             },
             {
                 "indexed": false,
+                "name": "tokensCost",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
                 "name": "timestamp",
                 "type": "uint256"
             }
@@ -972,7 +977,7 @@ async function switchWallet() {
     try {
         showStatus("🔄 Switching wallet...", true);
 
-        // Force wallet picker by requesting permissions fresh
+        // Force wallet picker
         await window.ethereum.request({
             method: "wallet_requestPermissions",
             params: [{ eth_accounts: {} }]
@@ -992,11 +997,14 @@ async function switchWallet() {
             method: "eth_chainId"
         });
         if (chainId !== "0x66eee") {
-            showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
+            showStatus(
+                "❌ Wrong network. Switch to Arbitrum Sepolia.",
+                false
+            );
             return;
         }
 
-        // Reinitialize with new account
+        // Reinitialize contracts
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
@@ -1034,7 +1042,6 @@ async function switchWallet() {
             showStatus("❌ " + err.message, false);
         }
     }
-
 }
 
 // Disconnect Wallet
