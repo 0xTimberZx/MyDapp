@@ -968,49 +968,87 @@ async function clearFilter() {
     }
 }
 
-// Switch Wallet
 async function switchWallet() {
     if (typeof window.ethereum === "undefined") {
         showStatus("⚠️ No wallet found.", false);
         return;
     }
-    try {
-    showStatus("🔄 Switching wallet...", true);
 
-    // Revoke current session to force fresh picker
-    try {
-    await window.ethereum.request({
-        method: "wallet_requestPermissions",
-        params: [{ eth_accounts: {} }]
-    });
-} catch (err) {
-    if (err.code === 4001) {
-        showStatus("❌ User rejected the request.", false);
+    // Brave can't pop the switcher — guide user instead
+    const isBrave = (navigator.brave && await navigator.brave.isBrave()) || false;
+    if (isBrave) {
+        showStatus("👆 Switch your account in Brave Wallet first, then click here to refresh.", false);
         return;
     }
-    // Fallback: tell user to switch manually
-    showStatus("⚠️ Please switch accounts in your wallet extension manually, then click reconnect.", false);
-    return;
+
+    // MetaMask and others — normal revoke + request flow
+    try {
+        try {
+            await window.ethereum.request({
+                method: "wallet_revokePermissions",
+                params: [{ eth_accounts: {} }]
+            });
+        } catch (revokeErr) {
+            console.log("Revoke not supported:", revokeErr);
+        }
+
+        const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts"
+        });
+
+        if (!accounts || accounts.length === 0) {
+            showStatus("❌ No accounts found.", false);
+            return;
+        }
+
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== "0x66eee") {
+            showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
+            return;
+        }
+
+        showStatus("✅ Wallet switched!", false);
+
+    } catch (err) {
+        if (err.code === 4001) {
+            showStatus("❌ User rejected.", false);
+        } else {
+            showStatus("⚠️ Switch failed. Try manually in your wallet.", false);
+        }
+    }
+}
+
+        // Update your UI state here...
+        showStatus("✅ Wallet switched!", true);
+
+    } catch (err) {
+        if (err.code === 4001) {
+            showStatus("❌ User rejected.", false);
+        } else {
+            showStatus("⚠️ Please switch accounts in your wallet manually.", false);
+        }
+    }
 }
 
     // Request fresh connection — triggers popup (only once)
-    const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-    });
+    const result = await window.ethereum.request({
+    method: "wallet_requestPermissions",
+    params: [{ eth_accounts: {} }]
+});
 
-    if (!accounts || accounts.length === 0) {
-        showStatus("❌ No accounts found.", false);
-        return;
-    }
+// Extract accounts from the permissions result
+const accounts = result?.[0]?.caveats?.[0]?.value;
 
-    // Verify correct network
-    const chainId = await window.ethereum.request({
-        method: "eth_chainId"
-    });
-    if (chainId !== "0x66eee") {
-        showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
-        return;
-    }
+if (!accounts || accounts.length === 0) {
+    showStatus("❌ No accounts found.", false);
+    return;
+}
+
+const chainId = await window.ethereum.request({ method: "eth_chainId" });
+if (chainId !== "0x66eee") {
+    showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
+    return;
+}
 
         // Reinitialize contracts
         provider = new ethers.providers.Web3Provider(window.ethereum);
