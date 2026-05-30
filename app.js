@@ -977,14 +977,20 @@ async function switchWallet() {
     try {
         showStatus("🔄 Switching wallet...", true);
 
-        // Force wallet picker
-        await window.ethereum.request({
-            method: "wallet_requestPermissions",
-            params: [{ eth_accounts: {} }]
-        });
+        // Revoke current session to force fresh picker
+        try {
+            await window.ethereum.request({
+                method: "wallet_revokePermissions",
+                params: [{ eth_accounts: {} }]
+            });
+        } catch (revokeErr) {
+            // Some wallets don't support revoke — continue anyway
+            console.log("Revoke not supported:", revokeErr);
+        }
 
+        // Request fresh connection — triggers popup
         const accounts = await window.ethereum.request({
-            method: "eth_accounts"
+            method: "eth_requestAccounts"
         });
 
         if (!accounts || accounts.length === 0) {
