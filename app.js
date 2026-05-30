@@ -975,46 +975,37 @@ async function switchWallet() {
         return;
     }
     try {
-        showStatus("🔄 Switching wallet...", true);
+    showStatus("🔄 Switching wallet...", true);
 
-        // Revoke current session to force fresh picker
-        try {
-            // Disconnect current session first
+    // Revoke current session to force fresh picker
+    try {
         await window.ethereum.request({
             method: "wallet_revokePermissions",
             params: [{ eth_accounts: {} }]
         });
+    } catch (revokeErr) {
+        // Some wallets don't support revoke — continue anyway
+        console.log("Revoke not supported:", revokeErr);
+    }
 
-        // Then request fresh connection
-        await window.ethereum.request({
-            method: "eth_requestAccounts"
-        })
-        } catch (revokeErr) {
-            // Some wallets don't support revoke — continue anyway
-            console.log("Revoke not supported:", revokeErr);
-        }
+    // Request fresh connection — triggers popup (only once)
+    const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+    });
 
-        // Request fresh connection — triggers popup
-        const accounts = await window.ethereum.request({
-            method: "eth_requestAccounts"
-        });
+    if (!accounts || accounts.length === 0) {
+        showStatus("❌ No accounts found.", false);
+        return;
+    }
 
-        if (!accounts || accounts.length === 0) {
-            showStatus("❌ No accounts found.", false);
-            return;
-        }
-
-        // Verify correct network
-        const chainId = await window.ethereum.request({
-            method: "eth_chainId"
-        });
-        if (chainId !== "0x66eee") {
-            showStatus(
-                "❌ Wrong network. Switch to Arbitrum Sepolia.",
-                false
-            );
-            return;
-        }
+    // Verify correct network
+    const chainId = await window.ethereum.request({
+        method: "eth_chainId"
+    });
+    if (chainId !== "0x66eee") {
+        showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
+        return;
+    }
 
         // Reinitialize contracts
         provider = new ethers.providers.Web3Provider(window.ethereum);
