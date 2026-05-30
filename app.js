@@ -974,15 +974,14 @@ async function switchWallet() {
         return;
     }
 
-    // Brave can't pop the switcher — guide user instead
+    // Brave can't pop the switcher — guide user to switch manually first
     const isBrave = (navigator.brave && await navigator.brave.isBrave()) || false;
     if (isBrave) {
         showStatus("👆 Switch your account in Brave Wallet first, then click here to refresh.", false);
-        return;
     }
 
-    // MetaMask and others — normal revoke + request flow
     try {
+        // Revoke current session (MetaMask only — others will silently fail)
         try {
             await window.ethereum.request({
                 method: "wallet_revokePermissions",
@@ -992,6 +991,7 @@ async function switchWallet() {
             console.log("Revoke not supported:", revokeErr);
         }
 
+        // Request accounts — triggers popup on MetaMask, returns silently on Brave
         const accounts = await window.ethereum.request({
             method: "eth_requestAccounts"
         });
@@ -1001,67 +1001,32 @@ async function switchWallet() {
             return;
         }
 
+        // Verify correct network
         const chainId = await window.ethereum.request({ method: "eth_chainId" });
         if (chainId !== "0x66eee") {
             showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
             return;
         }
 
-        showStatus("✅ Wallet switched!", false);
-
-    } catch (err) {
-        if (err.code === 4001) {
-            showStatus("❌ User rejected.", false);
-        } else {
-            showStatus("⚠️ Switch failed. Try manually in your wallet.", false);
-        }
-    }
-        
-    // Request fresh connection — triggers popup (only once)
-    const result = await window.ethereum.request({
-    method: "wallet_requestPermissions",
-    params: [{ eth_accounts: {} }]
-});
-
-// Extract accounts from the permissions result
-const accounts = result?.[0]?.caveats?.[0]?.value;
-
-if (!accounts || accounts.length === 0) {
-    showStatus("❌ No accounts found.", false);
-    return;
-}
-
-const chainId = await window.ethereum.request({ method: "eth_chainId" });
-if (chainId !== "0x66eee") {
-    showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
-    return;
-}
-
-        // Reinitialize contracts
+        // Reinitialize contracts with new signer
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        tokenContract = new ethers.Contract(
-            TOKEN_ADDRESS, TOKEN_ABI, signer
-        );
-        compilerContract = new ethers.Contract(
-            COMPILER_ADDRESS, COMPILER_ABI, signer
-        );
+        tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
+        compilerContract = new ethers.Contract(COMPILER_ADDRESS, COMPILER_ABI, signer);
 
+        // Update UI
         const address = accounts[0];
         const balance = await provider.getBalance(address);
-        const ethBalance = parseFloat(
-            ethers.utils.formatEther(balance)
-        ).toFixed(4);
+        const ethBalance = parseFloat(ethers.utils.formatEther(balance)).toFixed(4);
 
         document.getElementById("walletAddress").innerText =
             address.slice(0, 6) + "..." + address.slice(-4);
-        document.getElementById("walletLabel").innerText =
-            ethBalance + " ETH";
+        document.getElementById("walletLabel").innerText = ethBalance + " ETH";
 
-        showStatus("✅ Switched to " +
-            address.slice(0,6) + "..." + address.slice(-4), true);
+        showStatus("✅ Switched to " + address.slice(0, 6) + "..." + address.slice(-4), true);
 
+        // Refresh app state
         await getMessage();
         await getHistory();
         await refreshTokenBalance();
@@ -1076,6 +1041,7 @@ if (chainId !== "0x66eee") {
         }
     }
 }
+
 
 // Disconnect Wallet
 function disconnectWallet() {
