@@ -979,16 +979,19 @@ async function switchWallet() {
 
     // Revoke current session to force fresh picker
     try {
-        const permissions = await window.ethereum.request({
-    method: "wallet_requestPermissions",
-    params: [{ eth_accounts: {} }]
-});
-
-const accounts = permissions[0]?.caveats?.[0]?.value;
-    } catch (revokeErr) {
-        // Some wallets don't support revoke — continue anyway
-        console.log("Revoke not supported:", revokeErr);
+    await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }]
+    });
+} catch (err) {
+    if (err.code === 4001) {
+        showStatus("❌ User rejected the request.", false);
+        return;
     }
+    // Fallback: tell user to switch manually
+    showStatus("⚠️ Please switch accounts in your wallet extension manually, then click reconnect.", false);
+    return;
+}
 
     // Request fresh connection — triggers popup (only once)
     const accounts = await window.ethereum.request({
