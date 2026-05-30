@@ -577,6 +577,9 @@ async function updateMessage() {
             maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
         });
         await publishTx.wait();
+        
+        // Give RPC node time to index the new event
+await new Promise(resolve => setTimeout(resolve, 2000));
 
         const arbiscanUrl = "https://sepolia.arbiscan.io/tx/" + publishTx.hash;
         document.getElementById("txLink").href = arbiscanUrl;
@@ -731,6 +734,9 @@ async function compileString() {
 
         showStatus("⏳ Compiling on-chain...", true);
         await tx.wait();
+
+        // Give RPC node time to index the new event
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         document.getElementById("compileInput").value = "";
         document.getElementById("compileCharCount").innerText = "0/80";
