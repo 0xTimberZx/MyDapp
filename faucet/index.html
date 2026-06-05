@@ -841,7 +841,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ── CONFIG ──────────────────────────────────────────────
-  const VAULT_ADDRESS = "REPLACE_WITH_YOUR_FAUCET_VAULT_CONTRACT_ADDRESS";
+  const VAULT_ADDRESS = "0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF";
   const RPC_URL       = "https://sepolia-rollup.arbitrum.io/rpc";
   const CHAIN_ID      = 421614;
   const COOLDOWN_MS   = 12 * 60 * 60 * 1000; // mirrors contract cooldown
@@ -962,8 +962,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ── STORAGE HELPERS ─────────────────────────────────────
   function getCooldownKey(addr) {
-    return faucet_cooldown_${addr.toLowerCase()};
-  }
+  return `faucet_cooldown_${addr.toLowerCase()}`;
+}
     function getLastClaim(addr) {
     const val = localStorage.getItem(getCooldownKey(addr));
     return val ? parseInt(val, 10) : 0;
@@ -1067,7 +1067,8 @@ tick();
       const receipt = await staticProvider.getTransactionReceipt(txHash);
       if (receipt && receipt.status === 1) {
         $("verifyRow").style.display = "flex";
-        $("verifyText").textContent = Verified: ${fmtAddr(txHash)} · Block ${receipt.blockNumber};
+        $("verifyText").textContent =
+  `Verified: ${fmtAddr(txHash)} · Block ${receipt.blockNumber}`;
         return true;
       }
     } catch (e) {}
@@ -1188,7 +1189,8 @@ connectBtn.textContent = "Connecting…";
         // Show explorer link for connected wallet
         const explorerLink = $("explorerLink");
         if (explorerLink) {
-          explorerLink.href = https://sepolia.arbiscan.io/address/${userAddress};
+          explorerLink.href =
+  `https://sepolia.arbiscan.io/address/${userAddress}`;
           explorerLink.style.display = "flex";
         }
 
@@ -1209,7 +1211,11 @@ const nextTime = await vault.nextClaimTime(userAddress); // unix seconds
  
         if (remaining > 0) {
           startTimer(remaining);
-          showStatus("error", "Cooldown Active", You claimed recently. Next claim available in ${fmtTime(remaining)}.);
+          showStatus(
+  "error",
+  "Cooldown Active",
+  `You claimed recently. Next claim available in ${fmtTime(remaining)}.`
+);
         }
  
       } catch (err) {
@@ -1242,7 +1248,11 @@ if (claimBtn) {
         const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
         if (remaining > 0) {
           startTimer(remaining);
-          showStatus("error", "Cooldown Active", Wait ${fmtTime(remaining)} before claiming again.);
+          showStatus(
+  "error",
+  "Cooldown Active",
+  `Wait ${fmtTime(remaining)} before claiming again.`
+);
           return;
         }
       } catch (e) {
@@ -1267,7 +1277,12 @@ if (claimBtn) {
 
         const tx = await vault.claim({ gasLimit: gasWithBuffer });
     } claimBtn.textContent = "Confirming…";
-        showStatus("success", "Tx Submitted", Hash: ${fmtAddr(tx.hash)}, tx.hash);
+        showStatus(
+  "success",
+  "Tx Submitted",
+  `Hash: ${fmtAddr(tx.hash)}`,
+  tx.hash
+);
 
         await tx.wait(1);
 
@@ -1282,7 +1297,12 @@ if (claimBtn) {
         claimBtn.classList.add("dripping");
         setTimeout(() => claimBtn.classList.remove("dripping"), 600);
 
-        showStatus("success", "✔ Claimed!", 0.005 ETH sent to ${fmtAddr(userAddress)}, tx.hash);
+        showStatus(
+  "success",
+  "✔ Claimed!",
+  `0.005 ETH sent to ${fmtAddr(userAddress)}`,
+  tx.hash
+);
         startTimer(COOLDOWN_MS);
         showGesture();
 
@@ -1370,8 +1390,8 @@ if (claimBtn) {
         claimBtn.textContent = "Sending…";
  
         const tx = await vault.claim({ gasLimit: gasWithBuffer });
- 
-        claimBtn.textContent = "Confirming…";
+
+claimBtn.textContent = "Confirming…";
         showStatus("success", "Tx Submitted", `Hash: ${fmtAddr(tx.hash)}`, tx.hash);
  
         await tx.wait(1);
@@ -1408,31 +1428,6 @@ if (claimBtn) {
     });
   }
 
-  // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
-  if (window.ethereum) {
-    window.ethereum.on("accountsChanged", (accounts) => {
-      if (!accounts.length) location.reload();
-      else {
-        userAddress = accounts[0];
-        $("addressDisplay").textContent = userAddress;
-        clearStatus();
-        if (timerInterval) clearInterval(timerInterval);
-        $("timerBox").classList.remove("visible");
-        $("verifyRow").style.display = "none";
-        refreshBalances();
-        const remaining = msUntilNextClaim(userAddress);
-        if (remaining > 0) {
-          startTimer(remaining);
-        } else {
-          $("claimBtn").disabled = false;
-          $("claimBtn").textContent = "Claim ETH";
-        }
-      }
-    });
- 
-    window.ethereum.on("chainChanged", () => location.reload());
-  }
- 
 });
 </script>
 </body>
