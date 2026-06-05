@@ -108,6 +108,11 @@ History updates with cost and sender---
 
 ---
 
+FaucetVault — 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF
+Compiler: solc 0.8.20 | Optimizer: OFF
+Deployed: [06/05/06]
+Verified: Sourcify ✔
+
 ## 🗂️ Project Structuremy-dapp/
 ├── index.html           # Frontend structure and layout
 ├── style.css            # Styling and responsive design
@@ -117,6 +122,7 @@ History updates with cost and sender---
 ├── StringCompiler.sol   # String compilation and token charging
 ├── notes.md             # Project notes and contract history
 └── README.md            # This file---
+├── Faucet.sol.          # Eth token faucet per connected wallet
 
 ## 📊 Contract ArchitectureUser Wallet
 ↓ approve()
@@ -205,7 +211,7 @@ This DApp was built entirely from an iPhone using:
 | HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
 | StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
 | DAPP Token on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
-
+| Faucet Webpage | [https://0xtimberzx.github.io/MyDapp/faucet/]
 ---
 
 ## 📄 License
