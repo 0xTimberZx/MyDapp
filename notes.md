@@ -76,6 +76,12 @@ and view the complete transaction history — all from a mobile browser.
 | Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
 | Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
 
+### Faucet
+| Detail | Value |
+| Address | 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF |
+| Eth Send per Claim | 0.005 ETH ( every 12 hours ) |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
 ---
 
 ## 🔄 How The String Compiler WorksUser approves DAPP tokens for StringCompiler
