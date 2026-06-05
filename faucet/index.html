@@ -1322,7 +1322,7 @@ if (claimBtn) {
         }
       }
     });
-  }
+  
 
   // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
   if (window.ethereum) {
@@ -1427,7 +1427,18 @@ claimBtn.textContent = "Confirming…";
       }
     });
   }
-
+// ── ACCOUNT CHANGE LISTENER ──────────────────────────────
+  if (window.ethereum) {
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts.length) location.reload();
+      else {
+        userAddress = accounts[0];
+        $("addressDisplay").textContent = userAddress;
+        clearStatus();
+        if (timerInterval) clearInterval(timerInterval);
+        $("timerBox").classList.remove("visible");
+        $("verifyRow").style.display = "none";
+        refreshBalances();
 });
 </script>
 </body>
