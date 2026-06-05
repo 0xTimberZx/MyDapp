@@ -1276,7 +1276,7 @@ if (claimBtn) {
         claimBtn.textContent = "Sending…";
 
         const tx = await vault.claim({ gasLimit: gasWithBuffer });
-    } claimBtn.textContent = "Confirming…";
+    claimBtn.textContent = "Confirming…";
         showStatus(
   "success",
   "Tx Submitted",
@@ -1322,124 +1322,31 @@ if (claimBtn) {
         }
       }
     });
-  
-
-  // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
-  if (window.ethereum) {
-    window.ethereum.on("accountsChanged", (accounts) => {
-      if (!accounts.length) location.reload();
-      else {
-        userAddress = accounts[0];
-        $("addressDisplay").textContent = userAddress;
-        clearStatus();
-        if (timerInterval) clearInterval(timerInterval);
-        $("timerBox").classList.remove("visible");
-        $("verifyRow").style.display = "none";
-        refreshBalances();
- 
-      } catch (err) {
-        connectBtn.textContent = "Connect Wallet";
-        connectBtn.disabled = false;
-
-      showStatus("error", "Connection Failed", err.message || "Unknown error.");
-      }
-    });
-  }
- 
-  // ── CLAIM ────────────────────────────────────────────────
-  const claimBtn = $("claimBtn");
-  if (claimBtn) {
-    claimBtn.addEventListener("click", async () => {
-      if (!userAddress || !signer) return;
- 
-      // Check vault address configured
-      if (VAULT_ADDRESS.startsWith("REPLACE")) {
-        showStatus("error", "Not Configured", "FaucetVault contract address not set in app.js.");
-        return;
-      }
- 
-      // Check on-chain cooldown first
-      try {
-        const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const vaultRead = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
-        const nextTime = await vaultRead.nextClaimTime(userAddress);
-        const nowSec = Math.floor(Date.now() / 1000);
-        const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
-        if (remaining > 0) {
-          startTimer(remaining);
-          showStatus("error", "Cooldown Active", `Wait ${fmtTime(remaining)} before claiming again.`);
-          return;
-        }
-      } catch (e) {
-        // If read fails, let the tx attempt and the contract will revert with its own error
-      }
- 
-      claimBtn.classList.add("btn-loading");
-      claimBtn.classList.remove("btn-claim");
-      claimBtn.textContent = "Waiting for wallet…";
-      claimBtn.disabled = true;
-      clearStatus();
-      $("verifyRow").style.display = "none";
-      try {
-        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
- 
-        // Estimate gas with 50% buffer (your standard pattern)
-        const gasEstimate = await vault.estimateGas.claim();
-        const gasWithBuffer = gasEstimate.mul(150).div(100);
- 
-        claimBtn.textContent = "Sending…";
- 
-        const tx = await vault.claim({ gasLimit: gasWithBuffer });
-
-claimBtn.textContent = "Confirming…";
-        showStatus("success", "Tx Submitted", `Hash: ${fmtAddr(tx.hash)}`, tx.hash);
- 
-        await tx.wait(1);
- 
-        // Verify on-chain
-        await verifyTx(tx.hash);
- 
-        setLastClaim(userAddress); // keep localStorage in sync as backup
-        await refreshBalances();
- 
-        claimBtn.classList.remove("btn-loading");
-        claimBtn.classList.add("btn-claim");
-        claimBtn.classList.add("dripping");
-        setTimeout(() => claimBtn.classList.remove("dripping"), 600);
-        showStatus("success", "✔ Claimed!", `0.005 ETH sent to ${fmtAddr(userAddress)}`, tx.hash);
-        startTimer(COOLDOWN_MS);
-        showGesture();
- 
-      } catch (err) {
-        claimBtn.classList.remove("btn-loading");
-        claimBtn.classList.add("btn-claim");
-        claimBtn.textContent = "Claim ETH";
-        claimBtn.disabled = false;
- 
-        // Surface readable revert reason if contract throws
-        const msg = err?.error?.message || err?.reason || err?.message || "Unknown error.";
-        const clean = msg.replace("execution reverted: ", "");
-        showStatus("error", "Claim Failed", clean);
- 
-        if (clean.toLowerCase().includes("cooldown") || clean.toLowerCase().includes("wait")) {
-          startTimer(COOLDOWN_MS);
-        }
-      }
-    });
-  }
 // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
-  if (window.ethereum) {
-    window.ethereum.on("accountsChanged", (accounts) => {
-      if (!accounts.length) location.reload();
-      else {
-        userAddress = accounts[0];
-        $("addressDisplay").textContent = userAddress;
-        clearStatus();
-        if (timerInterval) clearInterval(timerInterval);
-        $("timerBox").classList.remove("visible");
-        $("verifyRow").style.display = "none";
-        refreshBalances();
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", (accounts) => {
+    if (!accounts.length) {
+      location.reload();
+    } else {
+      userAddress = accounts[0];
+      $("addressDisplay").textContent = userAddress;
+
+      clearStatus();
+
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+
+      $("timerBox").classList.remove("visible");
+      $("verifyRow").style.display = "none";
+
+      refreshBalances();
+    }
+  });
+}
+
 });
+  
 </script>
 </body>
 </html>
