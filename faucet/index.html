@@ -979,13 +979,19 @@ try {
         const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
 
       // Estimate gas with 50% buffer (your standard pattern)
-        const gasEstimate = await vault.estimateGas.claim();
-        const gasWithBuffer = gasEstimate.mul(150).div(100);
- 
-        claimBtn.textContent = "Sending…";
- 
-        const tx = await vault.claim({ gasLimit: gasWithBuffer });
- 
+      const gasEstimate = await vault.estimateGas.claim();
+const gasWithBuffer = gasEstimate.mul(150).div(100);
+const feeData = await provider.getFeeData();
+
+const tx = await vault.claim({
+  gasLimit: gasWithBuffer,
+  maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
+  maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100)
+});  
+        
+
+         claimBtn.textContent = "Sending…";
+        
         claimBtn.textContent = "Confirming…";
         showStatus("success", "Tx Submitted", `Hash: ${fmtAddr(tx.hash)}`, tx.hash);
  
