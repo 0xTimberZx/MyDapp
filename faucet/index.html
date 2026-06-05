@@ -6,7 +6,7 @@
 <title>0xFaucet — Arbitrum Sepolia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
 <style>
   :root {
     --bg: #080a0f;
@@ -520,6 +520,159 @@
 
   .net-detail-item.full { grid-column: 1 / -1; }
 
+  /* Explorer link button */
+  .btn-explorer {
+    width: 100%;
+    padding: 11px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-explorer:hover {
+    border-color: #7c9bff;
+    color: #7c9bff;
+    background: rgba(100,130,255,0.06);
+    transform: translateY(-1px);
+  }
+
+  /* Popup overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 12, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Gesture card */
+  .gesture-card {
+    background: var(--surface);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 20px;
+    padding: 32px 24px 24px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    transform: translateY(18px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 60px rgba(0,229,160,0.08), 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .overlay.visible .gesture-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .gesture-glow {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 120px;
+    background: radial-gradient(ellipse, rgba(0,229,160,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .gesture-icon {
+    font-size: 36px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .gesture-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .gesture-message {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+    text-align: center;
+  }
+
+  .gesture-message .name {
+    color: var(--accent);
+  }
+
+  .gesture-body {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .gesture-sig {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .gesture-sig span { color: var(--accent); }
+
+  .btn-finish {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #050709;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .btn-finish:hover {
+    background: #00ffb3;
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
   /* Drip animation on claim */
   @keyframes drip {
     0% { transform: scale(1); }
@@ -635,6 +788,11 @@
       <span id="verifyText">Last tx verified on-chain</span>
     </div>
 
+    <!-- Explorer link — shown after connect -->
+    <a class="btn-explorer" id="explorerLink" href="#" target="_blank" style="display:none;">
+      ↗ View Wallet on Arbiscan
+    </a>
+
     <button class="btn btn-claim" id="claimBtn">Claim ETH</button>
 
   </div>
@@ -661,11 +819,29 @@
 
 </div>
 
+<!-- Gesture popup -->
+<div class="overlay" id="gestureOverlay">
+  <div class="gesture-card" id="gestureCard">
+    <div class="gesture-glow"></div>
+    <div class="gesture-icon">⬡</div>
+    <div class="gesture-title">// Claim Successful</div>
+    <div class="gesture-message">
+      Thanks for using 0xFaucet, <span class="name" id="gestureName">Nova</span>.
+    </div>
+    <div class="gesture-body">
+      Your 0.005 ETH is on its way.<br>
+      Come back in 12 hours —<br>we'll keep the lights on.
+    </div>
+    <div class="gesture-sig">— <span>0xTimberzx</span></div>
+    <button class="btn-finish" id="finishBtn">Done</button>
+  </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
   // ── CONFIG ──────────────────────────────────────────────
-  const VAULT_ADDRESS = "0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF";
+  const VAULT_ADDRESS = "REPLACE_WITH_YOUR_FAUCET_VAULT_CONTRACT_ADDRESS";
   const RPC_URL       = "https://sepolia-rollup.arbitrum.io/rpc";
   const CHAIN_ID      = 421614;
   const COOLDOWN_MS   = 12 * 60 * 60 * 1000; // mirrors contract cooldown
@@ -685,12 +861,110 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const $ = id => document.getElementById(id);
 
-  // ── STORAGE HELPERS ─────────────────────────────────────
-  function getCooldownKey(addr) {
-    return `faucet_cooldown_${addr.toLowerCase()}`;
+  // ── NAMES ────────────────────────────────────────────────
+  const NAMES = [
+    // Classic
+    "James","Eleanor","Marcus","Sofia","Henry","Clara","Arthur","Diana",
+    "Edward","Florence","George","Harriet","Isaac","Josephine","Leonard",
+    "Margaret","Nathan","Olivia","Philip","Rosalind","Samuel","Theresa",
+    "Victor","Winifred","Albert","Beatrice","Cecil","Dorothy","Ernest",
+    "Frances","Gilbert","Helena","Julia","Kenneth","Louisa","Milton",
+    "Nora","Oscar","Prudence","Raymond","Sylvia","Thomas","Ursula",
+    "Vincent","Walter","Agnes","Bernard","Catherine","Douglas","Edith",
+    "Frederick","Grace","Howard","Irene","Jerome","Katherine","Lawrence",
+    "Mabel","Norman","Octavia","Percy","Roland","Stella","Theodore",
+    "Una","Vivian","Wilfred","Yvonne","Zachary","Adelaide","Basil",
+    "Constance","Desmond","Eugenia","Felix","Gertrude","Herbert","Isabella",
+    "Jasper","Leonora","Maxwell","Natalie","Orlando","Penelope","Reginald",
+    "Serena","Timothy","Valentine","Wesley","Arabella","Bruno","Cecilia",
+
+"Edmund","Emmeline","Ferdinand","Gwendolyn","Horatio","Imogen","Julian",
+    "Lavinia","Narcissa","Portia","Quentin","Rowena","Sebastian","Tamara",
+    "Veronica","Winston","Aldous","Blanche","Cornelius","Delphine","Gideon",
+    "Isolde","Leontine","Matthias","Oberon","Perdita","Raffael","Sybil",
+    "Thaddeus","Valentina","Warren","Alaric","Benedict","Christabel",
+    "Dorian","Evangeline","Florian","Griselda","Hadrian","Isadora","Leopold",  
+
+"Algernon","Brunella","Casimir","Dorothea","Everett","Galadriel",
+    "Hieronymus","Ingrid","Jonquil","Lysander","Millicent","Nerissa",
+    "Ophelia","Peregrine","Quintessa","Roderick","Sophronia","Tancred",
+    "Uriah","Venetia","Whitmore","Ximena","Zenobia","Archibald","Clementine",
+    "Dashiell","Elowen","Godwin","Hartley","Isidore","Jemima","Kingsley",
+    "Lancelot","Magdalene","Nicodemus","Oswald","Prunella","Remington",
+    "Tallulah","Ulric","Wilhelmina","Ambrose","Cordelia","Drummond",
+    "Elspeth","Godfrey","Hannelore","Iolanthe","Jocasta","Lysandra",
+    "Mortimer","Niamh","Oleander","Ptolemy","Rosamund","Silvester",
+    "Tiberius","Ursule","Warwick","Xanthe","Yaroslav","Zebediah",
+    // Scientists & Inventors
+    "Nikola","Albert","Isaac","Marie","Charles","Ada","Alan","Galileo", 
+    "Archimedes","Copernicus","Kepler","Darwin","Faraday","Mendel","Pasteur",
+    "Curie","Tesla","Edison","Newton","Bohr","Planck","Heisenberg","Feynman",
+    "Oppenheimer","Hawking","Turing","Lovelace","Babbage","Celsius","Kelvin",
+    "Ampere","Volta","Watt","Hertz","Pascal","Laplace","Gauss","Euler",
+    "Leibniz","Descartes","Pythagoras","Euclid","Archimedes","Fibonacci",
+    "Avogadro","Dalton","Lavoisier","Mendeleev","Rutherford","Thomson",
+    "Herschel","Hubble","Sagan","Hoyle","Eddington","Chandrasekhar",
+    "Ramanujan","Fermat","Cauchy","Riemann","Hilbert","Poincare","Noether",
+
+    "Boltzmann","Maxwell","Lorentz","Dirac","Schrodinger","Pauli","Born",
+    "Crick","Watson","Franklin","Pauling","Boyle","Hooke","Lister","Fleming",
+    "Jenner","Harvey","Vesalius","Hippocrates","Galen","Avicenna","Linnaeus",
+    "Lamarck","Huxley","Lyell","Wegener","Humboldt","Buffon","Cuvier",
+    "Marconi","Bell","Morse","Baird","Berners","Lovelace","Hopper","Knuth",
+    // Artists & Writers
+    "Leonardo","Michelangelo","Raphael","Caravaggio","Rembrandt","Vermeer",
+    "Monet","Renoir","Degas","Cezanne","Matisse","Picasso","Dali","Klimt",
+    "Kandinsky","Mondrian","Warhol","Basquiat","Banksy","Frida","Georgia",
+    "Toulouse","Gauguin","Seurat","Manet","Delacroix","Ingres","Courbet",
+    "Botticelli","Donatello","Titian","Tintoretto","Velazquez","Goya",
+    "Turner","Constable","Blake","Hogarth","Reynolds","Gainsborough",
+    "Homer","Virgil","Dante","Chaucer","Shakespeare","Cervantes","Moliere",
+    "Voltaire","Rousseau","Goethe","Schiller","Pushkin","Tolstoy","Dostoevsky",
+    "Chekhov","Turgenev","Gogol","Balzac","Flaubert","Zola","Hugo","Dumas",
+
+    "Stendhal","Proust","Baudelaire","Rimbaud","Verlaine","Mallarme",
+    "Dickens","Austen","Bronte","Hardy","Eliot","Thackeray","Trollope",
+    "Woolf","Joyce","Beckett","Yeats","Keats","Shelley","Byron","Coleridge",
+    "Wordsworth","Blake","Milton","Donne","Marlowe","Chaucer","Spenser",
+    "Twain","Whitman","Emerson","Thoreau","Poe","Hawthorne","Melville",
+    "Hemingway","Fitzgerald","Faulkner","Steinbeck","Salinger","Kerouac",
+    "Plath","Hughes","Ginsberg","Eliot","Pound","Frost","Dickinson","Longfellow",
+    "Borges","Neruda","Marquez","Lorca","Paz","Fuentes","Cortazar","Vargas",
+    "Kafka","Rilke","Mann","Hesse","Zweig","Musil","Schnitzler","Hofmannsthal",
+    "Ibsen","Strindberg","Hamsun","Lagerlof","Undset","Nexo","Andersen",
+    "Tolstoy","Gorky","Bulgakov","Pasternak","Akhmatova","Tsvetaeva","Mandelstam"
+  ];
+
+  
+    function pickName() {
+    return NAMES[Math.floor(Math.random() * NAMES.length)];
   }
 
-  function getLastClaim(addr) {
+  // ── GESTURE POPUP ────────────────────────────────────────
+  function showGesture() {
+    $("gestureName").textContent = pickName();
+    $("gestureOverlay").classList.add("visible");
+  }
+
+  function hideGesture() {
+    $("gestureOverlay").classList.remove("visible");
+  }
+
+  const finishBtn = $("finishBtn");
+  if (finishBtn) finishBtn.addEventListener("click", hideGesture);
+
+  const gestureOverlay = $("gestureOverlay");
+  if (gestureOverlay) {
+    gestureOverlay.addEventListener("click", function(e) {
+      if (e.target === gestureOverlay) hideGesture();
+    });
+  }
+
+  // ── STORAGE HELPERS ─────────────────────────────────────
+  function getCooldownKey(addr) {
+    return faucet_cooldown_${addr.toLowerCase()};
+  }
+    function getLastClaim(addr) {
     const val = localStorage.getItem(getCooldownKey(addr));
     return val ? parseInt(val, 10) : 0;
   }
@@ -714,8 +988,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function fmtAddr(addr) {
     return addr.slice(0, 6) + "···" + addr.slice(-4);
   }
-
-  function fmtTime(ms) {
+    function fmtTime(ms) {
     const s  = Math.floor(ms / 1000);
     const h  = Math.floor(s / 3600);
     const m  = Math.floor((s % 3600) / 60);
@@ -738,8 +1011,7 @@ document.addEventListener("DOMContentLoaded", function () {
       link.style.display = "none";
     }
   }
-
-  function clearStatus() {
+function clearStatus() {
     $("statusBox").className = "status-box";
     $("txLink").style.display = "none";
   }
@@ -768,7 +1040,7 @@ document.addEventListener("DOMContentLoaded", function () {
       $("timerBar").style.width = pct + "%";
     }
 
-    tick();
+tick();
     timerInterval = setInterval(tick, 1000);
   }
 
@@ -791,12 +1063,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ── VERIFY TX ────────────────────────────────────────────
   async function verifyTx(txHash) {
-    try {
-      const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    try {const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
       const receipt = await staticProvider.getTransactionReceipt(txHash);
       if (receipt && receipt.status === 1) {
         $("verifyRow").style.display = "flex";
-        $("verifyText").textContent = `Verified: ${fmtAddr(txHash)} · Block ${receipt.blockNumber}`;
+        $("verifyText").textContent = Verified: ${fmtAddr(txHash)} · Block ${receipt.blockNumber};
         return true;
       }
     } catch (e) {}
@@ -813,11 +1084,11 @@ document.addEventListener("DOMContentLoaded", function () {
         $("netStatusBody").textContent = "MetaMask or Brave Wallet not detected in this browser.";
         return;
       }
-
-      addNetBtn.disabled = true;
+        addNetBtn.disabled = true;
       addNetBtn.textContent = "Adding…";
-      $("netStatusBox").className
-try {
+      $("netStatusBox").className = "status-box";
+
+      try {
         // First try switching — if network already exists this is enough
         try {
           await window.ethereum.request({
@@ -834,8 +1105,8 @@ try {
           // Error code 4902 = network not in wallet yet — fall through to add
           if (switchErr.code !== 4902 && switchErr.code !== -32603) throw switchErr;
         }
- 
-        // Network not found — add it
+
+          // Network not found — add it
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
           params: [{
@@ -846,28 +1117,30 @@ try {
             blockExplorerUrls: ["https://sepolia.arbiscan.io"]
           }]
         });
- 
+
         $("netStatusBox").className = "status-box success";
         $("netStatusTitle").textContent = "✔ Added!";
         $("netStatusBody").textContent = "Arbitrum Sepolia added and set as active network.";
         addNetBtn.textContent = "✔ Network Added";
         $("wrongNet").classList.remove("visible");
- 
+
       } catch (err) {
         addNetBtn.disabled = false;
         addNetBtn.innerHTML = '<span class="net-icon">＋</span> Add to MetaMask';
         if (err.code === 4001) {
-          $("netStatusBox").className = "status-box error";
+
+$("netStatusBox").className = "status-box error";
           $("netStatusTitle").textContent = "Rejected";
           $("netStatusBody").textContent = "You declined the request in your wallet.";
         } else {
           $("netStatusBox").className = "status-box error";
-          $("netStatusTitle").textContent = "Failed";$("netStatusBody").textContent = err.message || "Unknown error.";
+          $("netStatusTitle").textContent = "Failed";
+          $("netStatusBody").textContent = err.message || "Unknown error.";
         }
       }
     });
   }
- 
+
   // ── CONNECT ──────────────────────────────────────────────
   const connectBtn = $("connectBtn");
   if (connectBtn) {
@@ -877,19 +1150,19 @@ try {
         return;
       }
       try {
-        connectBtn.textContent = "Connecting…";
+connectBtn.textContent = "Connecting…";
         connectBtn.disabled = true;
         provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
- 
+
         const network = await provider.getNetwork();
         if (network.chainId !== CHAIN_ID) {
           $("wrongNet").classList.add("visible");
           connectBtn.textContent = "Connect Wallet";
           connectBtn.disabled = false;
- 
+
           // Try to switch
           try {
             await window.ethereum.request({
@@ -902,23 +1175,32 @@ try {
             signer = provider.getSigner();
           } catch (switchErr) {
             showStatus("error", "Wrong Network", "Please switch to Arbitrum Sepolia (421614).");
+
             return;
           }
         }
- 
+
         $("wrongNet").classList.remove("visible");
         $("connectCard").style.display = "none";
         $("claimCard").style.display = "flex";
         $("addressDisplay").textContent = userAddress;
 
-      await refreshBalances();
- 
+        // Show explorer link for connected wallet
+        const explorerLink = $("explorerLink");
+        if (explorerLink) {
+          explorerLink.href = https://sepolia.arbiscan.io/address/${userAddress};
+          explorerLink.style.display = "flex";
+        }
+
+        await refreshBalances();
+
         // Check cooldown — prefer on-chain value from vault
         let remaining = 0;
         try {
           const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
           const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
-          const nextTime = await vault.nextClaimTime(userAddress); // unix seconds
+
+const nextTime = await vault.nextClaimTime(userAddress); // unix seconds
           const nowSec = Math.floor(Date.now() / 1000);
           remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
         } catch {
@@ -927,8 +1209,113 @@ try {
  
         if (remaining > 0) {
           startTimer(remaining);
-          showStatus("error", "Cooldown Active", `You claimed recently. Next claim available in ${fmtTime(remaining)}.`);
+          showStatus("error", "Cooldown Active", You claimed recently. Next claim available in ${fmtTime(remaining)}.);
         }
+ 
+      } catch (err) {
+        connectBtn.textContent = "Connect Wallet";
+        connectBtn.disabled = false;
+        showStatus("error", "Connection Failed", err.message || "Unknown error.");
+      }
+    });
+  }
+ 
+  // ── CLAIM ────────────────────────────────────────────────
+  const claimBtn = $("claimBtn");
+
+if (claimBtn) {
+    claimBtn.addEventListener("click", async () => {
+      if (!userAddress || !signer) return;
+
+      // Check vault address configured
+      if (VAULT_ADDRESS.startsWith("REPLACE")) {
+        showStatus("error", "Not Configured", "FaucetVault contract address not set in app.js.");
+        return;
+      }
+
+      // Check on-chain cooldown first
+      try {
+        const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        const vaultRead = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
+        const nextTime = await vaultRead.nextClaimTime(userAddress);
+        const nowSec = Math.floor(Date.now() / 1000);
+        const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
+        if (remaining > 0) {
+          startTimer(remaining);
+          showStatus("error", "Cooldown Active", Wait ${fmtTime(remaining)} before claiming again.);
+          return;
+        }
+      } catch (e) {
+        // If read fails, let the tx attempt and the contract will revert with its own error
+      }
+
+      claimBtn.classList.add("btn-loading");
+      claimBtn.classList.remove("btn-claim");
+      claimBtn.textContent = "Waiting for wallet…";
+      claimBtn.disabled = true;
+      clearStatus();
+      $("verifyRow").style.display = "none";
+
+      try {
+        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
+
+        // Estimate gas with 50% buffer (your standard pattern)
+        const gasEstimate = await vault.estimateGas.claim();
+        const gasWithBuffer = gasEstimate.mul(150).div(100);
+
+        claimBtn.textContent = "Sending…";
+
+        const tx = await vault.claim({ gasLimit: gasWithBuffer });
+    } claimBtn.textContent = "Confirming…";
+        showStatus("success", "Tx Submitted", Hash: ${fmtAddr(tx.hash)}, tx.hash);
+
+        await tx.wait(1);
+
+        // Verify on-chain
+        await verifyTx(tx.hash);
+
+        setLastClaim(userAddress); // keep localStorage in sync as backup
+        await refreshBalances();
+
+        claimBtn.classList.remove("btn-loading");
+        claimBtn.classList.add("btn-claim");
+        claimBtn.classList.add("dripping");
+        setTimeout(() => claimBtn.classList.remove("dripping"), 600);
+
+        showStatus("success", "✔ Claimed!", 0.005 ETH sent to ${fmtAddr(userAddress)}, tx.hash);
+        startTimer(COOLDOWN_MS);
+        showGesture();
+
+      } catch (err) {
+        claimBtn.classList.remove("btn-loading");
+        claimBtn.classList.add("btn-claim");
+        claimBtn.textContent = "Claim ETH";
+        claimBtn.disabled = false;  
+      
+      // Surface readable revert reason if contract throws
+        const msg = err?.error?.message || err?.reason || err?.message || "Unknown error.";
+        const clean = msg.replace("execution reverted: ", "");
+        showStatus("error", "Claim Failed", clean);
+
+        if (clean.toLowerCase().includes("cooldown") || clean.toLowerCase().includes("wait")) {
+          startTimer(COOLDOWN_MS);
+        }
+      }
+    });
+  }
+
+  // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
+  if (window.ethereum) {
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts.length) location.reload();
+      else {
+        userAddress = accounts[0];
+        $("addressDisplay").textContent = userAddress;
+        clearStatus();
+        if (timerInterval) clearInterval(timerInterval);
+        $("timerBox").classList.remove("visible");
+        $("verifyRow").style.display = "none";
+        refreshBalances();
  
       } catch (err) {
         connectBtn.textContent = "Connect Wallet";
@@ -957,8 +1344,7 @@ try {
         const vaultRead = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
         const nextTime = await vaultRead.nextClaimTime(userAddress);
         const nowSec = Math.floor(Date.now() / 1000);
-
-      const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
+        const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
         if (remaining > 0) {
           startTimer(remaining);
           showStatus("error", "Cooldown Active", `Wait ${fmtTime(remaining)} before claiming again.`);
@@ -974,24 +1360,17 @@ try {
       claimBtn.disabled = true;
       clearStatus();
       $("verifyRow").style.display = "none";
- 
       try {
         const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
-
-      // Estimate gas with 50% buffer (your standard pattern)
-      const gasEstimate = await vault.estimateGas.claim();
-const gasWithBuffer = gasEstimate.mul(150).div(100);
-const feeData = await provider.getFeeData();
-
-const tx = await vault.claim({
-  gasLimit: gasWithBuffer,
-  maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
-  maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100)
-});  
-        
-
-         claimBtn.textContent = "Sending…";
-        
+ 
+        // Estimate gas with 50% buffer (your standard pattern)
+        const gasEstimate = await vault.estimateGas.claim();
+        const gasWithBuffer = gasEstimate.mul(150).div(100);
+ 
+        claimBtn.textContent = "Sending…";
+ 
+        const tx = await vault.claim({ gasLimit: gasWithBuffer });
+ 
         claimBtn.textContent = "Confirming…";
         showStatus("success", "Tx Submitted", `Hash: ${fmtAddr(tx.hash)}`, tx.hash);
  
@@ -1007,9 +1386,9 @@ const tx = await vault.claim({
         claimBtn.classList.add("btn-claim");
         claimBtn.classList.add("dripping");
         setTimeout(() => claimBtn.classList.remove("dripping"), 600);
-
-      showStatus("success", "✔ Claimed!", `0.005 ETH sent to ${fmtAddr(userAddress)}`, tx.hash);
+        showStatus("success", "✔ Claimed!", `0.005 ETH sent to ${fmtAddr(userAddress)}`, tx.hash);
         startTimer(COOLDOWN_MS);
+        showGesture();
  
       } catch (err) {
         claimBtn.classList.remove("btn-loading");
@@ -1050,11 +1429,12 @@ const tx = await vault.claim({
         }
       }
     });
-
-  window.ethereum.on("chainChanged", () => location.reload());
+ 
+    window.ethereum.on("chainChanged", () => location.reload());
   }
  
 });
 </script>
 </body>
 </html>
+ 
