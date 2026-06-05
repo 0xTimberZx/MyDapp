@@ -1325,23 +1325,50 @@ if (claimBtn) {
 }
 // ── ACCOUNT CHANGE LISTENER ──────────────────────────────
 if (window.ethereum) {
-  window.ethereum.on("accountsChanged", (accounts) => {
+  window.ethereum.on("accountsChanged", async (accounts) => {
     if (!accounts.length) {
       location.reload();
-    } else {
-      userAddress = accounts[0];
-      $("addressDisplay").textContent = userAddress;
+      return;
+    }
 
-      clearStatus();
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    userAddress = accounts[0];
 
-      if (timerInterval) {
-        clearInterval(timerInterval);
+    $("addressDisplay").textContent = userAddress;
+
+    clearStatus();
+
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+
+    $("timerBox").classList.remove("visible");
+    $("verifyRow").style.display = "none";
+
+    await refreshBalances();
+
+    // Re-check cooldown for the new wallet
+    try {
+      const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+      const vault = new ethers.Contract(
+        VAULT_ADDRESS,
+        VAULT_ABI,
+        staticProvider
+      );
+
+      const nextTime = await vault.nextClaimTime(userAddress);
+      const nowSec = Math.floor(Date.now() / 1000);
+      const remaining = Math.max(
+        0,
+        (nextTime.toNumber() - nowSec) * 1000
+      );
+
+      if (remaining > 0) {
+        startTimer(remaining);
       }
-
-      $("timerBox").classList.remove("visible");
-      $("verifyRow").style.display = "none";
-
-      refreshBalances();
+    } catch (e) {
+      console.error(e);
     }
   });
 }
