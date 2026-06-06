@@ -3,3 +3,5 @@
 
 
 https://0xtimberzx.github.io/MyDapp/faucet/
+
+eth course telegram https://t.me/joinchat/IfARhZFc5bfPwpjq
