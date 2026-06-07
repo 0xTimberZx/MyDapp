@@ -53,10 +53,10 @@ and view the complete transaction history — all from a mobile browser.
 ### HelloWorld
 | Detail | Value |
 |---|---|
-| Address | 0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6 |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
-| Blockscout | [View on Blockscout](https://arbitrum-sepolia.blockscout.com/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
+| Address | 0x4c8ded518b3de7d839d3a2756773b8028c5c74aa |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
+| Blockscout | [View on Blockscout](https://arbitrum-sepolia.blockscout.com/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
 
 ### DAPP Token (ERC-20)
 | Detail | Value |
@@ -214,7 +214,7 @@ This DApp was built entirely from an iPhone using:
 | Live DApp | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/) |
 | GitHub Repo | [github.com/0xTimberzx/mydapp](https://github.com/0xTimberzx/mydapp) |
 | Gist | [View Gist](https://gist.github.com/0xTimberZx/c7f0b7d3d7a4938bd983dd49a81c3ce4) |
-| HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0xB4ECfD96546FE91A6eE7501BdcCC35C6B51E37b6) |
+| HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
 | StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
 | DAPP Token on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
 | Faucet Webpage | []
