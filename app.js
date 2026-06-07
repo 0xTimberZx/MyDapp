@@ -267,6 +267,26 @@ async function connectWallet() {
         // Setup ethers
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
+
+     //Check all 3 contracts   
+const helloCode = await provider.getCode(CONTRACT_ADDRESS);
+const tokenCode = await provider.getCode(TOKEN_ADDRESS);
+const compilerCode = await provider.getCode(COMPILER_ADDRESS);
+
+if (
+    helloCode === "0x" ||
+    tokenCode === "0x" ||
+    compilerCode === "0x"
+) {
+    showStatus(
+        "❌ One or more contract addresses are invalid.",
+        false
+    );
+
+    resetConnectBtn();
+    return;
+}
+        
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
         tokenContract = new ethers.Contract(
             TOKEN_ADDRESS, TOKEN_ABI, signer
@@ -818,10 +838,20 @@ async function publishMessage() {
             "🚀 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
 
+await getMessage();
+await getHistory();
+await refreshTokenBalance();
+await refreshCompilerState();
+
+// Extra refresh after a short delay
+setTimeout(async () => {
+    try {
         await getMessage();
         await getHistory();
-        await refreshTokenBalance();
-        await refreshCompilerState();
+    } catch (e) {
+        console.log("Delayed refresh failed:", e);
+    }
+}, 3000);
 
     } catch (err) {
         document.getElementById("publishBtn").innerText =
@@ -1124,6 +1154,8 @@ window.refreshCompilerState = refreshCompilerState;
 window.publishMessage = publishMessage;
 window.clearCompiled = clearCompiled;
 window.switchWallet = switchWallet;
+    window.ethereum.on("accountsChanged", async () => {
+    await connectWallet();
 
 }); // End DOMContentLoaded
 // GOLDEN VERSION 4 - complete app.js with all fixes
