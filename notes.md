@@ -71,12 +71,13 @@ and view the complete transaction history — all from a mobile browser.
 ### StringCompiler
 | Detail | Value |
 |---|---|
-| Address | 0x63516F99D6e82cC8372198b8248f3B3aE001bfb6 |
+| Address | 0x5E16f043e19A8aAABc8A0d7B29C465784aF77092 |
 | Price Per Compile | 10 DAPP (first segment free) |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x5e16f043e19a8aaabc8a0d7b29c465784af77092) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x5E16f043e19A8aAABc8A0d7B29C465784aF77092) |
 
 ### Faucet
+|---|---|
 | Detail | Value |
 | Address | 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF |
 | Eth Send per Claim | 0.005 ETH ( every 12 hours ) |
