@@ -1153,9 +1153,9 @@ window.compileString = compileString;
 window.refreshCompilerState = refreshCompilerState;
 window.publishMessage = publishMessage;
 window.clearCompiled = clearCompiled;
-window.switchWallet = switchWallet;
-    window.ethereum.on("accountsChanged", async () => {
+window.ethereum.on("accountsChanged", async () => {
     await connectWallet();
+});
 
 }); // End DOMContentLoaded
 // GOLDEN VERSION 4 - complete app.js with all fixes
