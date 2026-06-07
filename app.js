@@ -406,12 +406,12 @@ async function getHistory(filteredEvents = null) {
 
             // Normalize compiler events
             const normalizedCompiler = compilerEvents.map(event => ({
-                sender: event.args.user,
+              sender: event.args[0] ||  event.args.user,   
                 message: event.args.finalMessage,
                 timestamp: event.args.timestamp,
                 txHash: event.transactionHash,
                 blockNumber: event.blockNumber,
-                tokensCost: event.args.tokensCost,
+                tokensCost: event.args[3] || event.args.tokensCost,
                 type: "compiled"
             }));
 
@@ -457,11 +457,22 @@ async function getHistory(filteredEvents = null) {
                 ).toLocaleString()
                 : "Compiled message";
             const txHash = event.txHash;
-            const tokensCost = event.tokensCost
-                ? parseFloat(
-                    ethers.utils.formatEther(event.tokensCost)
-                ).toFixed(2) + " DAPP"
-                : null;
+            let tokensCost = null;
+        if (event.tokensCost !== null && event.tokensCost !== undefined) {
+            try {
+                const costBN = ethers.BigNumber.isBigNumber(event.tokensCost)
+                    ? event.tokensCost
+                    : ethers.BigNumber.from(event.tokensCost.toString());
+                const costNumber = parseFloat(
+                    ethers.utils.formatEther(costBN)
+                );
+                if (costNumber > 0) {
+                    tokensCost = costNumber.toFixed(2) + " DAPP";
+                }
+            } catch (e) {
+                console.log("Cost parse error:", e);
+            }
+        }
 
             const item = document.createElement("div");
             item.className = "history-item";const messageDiv = document.createElement("div");
@@ -898,12 +909,12 @@ async function filterHistory() {
 
         // Normalize compiler events
         const normalizedCompiler = compilerEvents.map(event => ({
-            sender: event.args.user,
+            sender: event.args[0] ||  event.args.user,
             message: event.args.finalMessage,
             timestamp: event.args.timestamp,
             txHash: event.transactionHash,
             blockNumber: event.blockNumber,
-            tokensCost: event.args.tokensCost,
+            tokensCost: event.args[3] || event.args.tokensCost,
             type: "compiled"
         }));
 
