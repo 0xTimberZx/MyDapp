@@ -44,7 +44,7 @@ contract HelloWorld {
 
     function updateMessage(
         string memory newMessage
-    ) public onlyCompiler {
+    ) public {
         message = newMessage;
         lastSender = msg.sender;
         lastUpdated = block.timestamp;
