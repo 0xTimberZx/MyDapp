@@ -5,3 +5,12 @@
 https://0xtimberzx.github.io/MyDapp/faucet/
 
 eth course telegram https://t.me/joinchat/IfARhZFc5bfPwpjq
+
+
+newhello world contract and verification 
+
+0x4c8ded518b3de7d839d3a2756773b8028c5c74aa
+
+https://repo.sourcify.dev/421614/0x4c8ded518b3de7d839d3a2756773b8028c5c74aaa
+
+https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa
