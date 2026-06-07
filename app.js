@@ -114,11 +114,6 @@ const COMPILER_ABI = [
             },
             {
                 "indexed": false,
-                "name": "tokensCost",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
                 "name": "timestamp",
                 "type": "uint256"
             }
@@ -126,7 +121,7 @@ const COMPILER_ABI = [
         "name": "MessagePublished",
         "type": "event"
     }
-    ];
+];
 
 const ABI = [
     {
@@ -273,9 +268,12 @@ async function connectWallet() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-       tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
-compilerContract = new ethers.Contract(COMPILER_ADDRESS, COMPILER_ABI, signer); 
-        
+        tokenContract = new ethers.Contract(
+            TOKEN_ADDRESS, TOKEN_ABI, signer
+        );
+        compilerContract = new ethers.Contract(
+            COMPILER_ADDRESS, COMPILER_ABI, signer
+        );
 
         // Show wallet info
         const address = accounts[0];
@@ -366,16 +364,12 @@ async function getHistory(filteredEvents = null) {
             const currentBlock = await provider.getBlockNumber();
             const fromBlock = Math.max(0, currentBlock - 50000);
 
-            // Read from StringCompiler MessagePublished events
             let compilerEvents = [];
             let helloWorldEvents = [];
 
-            // Retry logic
             let retries = 3;
             while (retries > 0) {
                 try {
-                
-                // Get StringCompiler events
                     const compilerFilter = compilerContract
                         .filters.MessagePublished();
                     compilerEvents = await compilerContract.queryFilter(
@@ -384,7 +378,6 @@ async function getHistory(filteredEvents = null) {
                         currentBlock
                     );
 
-                    // Get direct HelloWorld events
                     const hwFilter = contract.filters.MessageUpdated();
                     helloWorldEvents = await contract.queryFilter(
                         hwFilter,
@@ -404,9 +397,8 @@ async function getHistory(filteredEvents = null) {
                 }
             }
 
-            // Normalize compiler events
             const normalizedCompiler = compilerEvents.map(event => ({
-              sender: event.args[0] ||  event.args.user,   
+                sender: event.args[0] || event.args.user,
                 message: event.args.finalMessage,
                 timestamp: event.args.timestamp,
                 txHash: event.transactionHash,
@@ -415,7 +407,6 @@ async function getHistory(filteredEvents = null) {
                 type: "compiled"
             }));
 
-            // Normalize HelloWorld direct events
             const normalizedHW = helloWorldEvents.map(event => ({
                 sender: event.args.sender,
                 message: event.args.newMessage,
@@ -426,7 +417,6 @@ async function getHistory(filteredEvents = null) {
                 type: "direct"
             }));
 
-            // Remove HelloWorld events that match compiler txHashes
             const compilerTxHashes = new Set(
                 normalizedCompiler.map(e => e.txHash)
             );
@@ -434,7 +424,6 @@ async function getHistory(filteredEvents = null) {
                 e => !compilerTxHashes.has(e.txHash)
             );
 
-            // Combine and sort newest first
             events = [...normalizedCompiler, ...filteredHW]
                 .sort((a, b) => b.blockNumber - a.blockNumber);
         }
@@ -451,39 +440,50 @@ async function getHistory(filteredEvents = null) {
             const sender = event.sender;
             const message = event.message;
             const timestamp = event.timestamp
-                ? new Date(event.timestamp.toNumber
-                    ? event.timestamp.toNumber() * 1000
-                    : event.timestamp * 1000
+                ? new Date(
+                    event.timestamp.toNumber
+                        ? event.timestamp.toNumber() * 1000
+                        : event.timestamp * 1000
                 ).toLocaleString()
-                : "Compiled message";
+                : "Unknown time";
             const txHash = event.txHash;
+
             let tokensCost = null;
-        if (event.tokensCost !== null && event.tokensCost !== undefined) {
-            try {
-                const costBN = ethers.BigNumber.isBigNumber(event.tokensCost)
-                    ? event.tokensCost
-                    : ethers.BigNumber.from(event.tokensCost.toString());
-                const costNumber = parseFloat(
-                    ethers.utils.formatEther(costBN)
-                );
-                if (costNumber > 0) {
-                    tokensCost = costNumber.toFixed(2) + " DAPP";
+            if (
+                event.tokensCost !== null &&
+                event.tokensCost !== undefined
+            ) {
+                try {
+                    const costBN = ethers.BigNumber.isBigNumber(
+                        event.tokensCost
+                    )
+                        ? event.tokensCost
+                        : ethers.BigNumber.from(
+                            event.tokensCost.toString()
+                        );
+                    const costNumber = parseFloat(
+                        ethers.utils.formatEther(costBN)
+                    );
+                    if (costNumber > 0) {
+                        tokensCost = costNumber.toFixed(2) + " DAPP";
+                    }
+                } catch (e) {
+                    console.log("Cost parse error:", e);
                 }
-            } catch (e) {
-                console.log("Cost parse error:", e);
             }
-        }
 
             const item = document.createElement("div");
-            item.className = "history-item";const messageDiv = document.createElement("div");
+            item.className = "history-item";
+
+            const messageDiv = document.createElement("div");
             messageDiv.className = "history-message";
             messageDiv.textContent = message;
 
             const metaDiv = document.createElement("div");
             metaDiv.className = "history-meta";
             metaDiv.innerHTML =
-               `<span class="history-sender">${sender.slice(0,6)}...${sender.slice(-4)}</span>` +
-               `<span class="history-date">${timestamp}</span>`;
+                `<span class="history-sender">${sender.slice(0,6)}...${sender.slice(-4)}</span>` +
+                `<span class="history-date">${timestamp}</span>`;
 
             const txLink = document.createElement("a");
             txLink.href = "https://sepolia.arbiscan.io/tx/" + txHash;
@@ -495,7 +495,6 @@ async function getHistory(filteredEvents = null) {
             item.appendChild(messageDiv);
             item.appendChild(metaDiv);
 
-            // Show token cost if available
             if (tokensCost) {
                 const costDiv = document.createElement("div");
                 costDiv.className = "history-cost";
@@ -610,7 +609,7 @@ async function checkApproval() {
             COMPILER_ADDRESS
         );
         const formatted = parseFloat(
-            ethers.utils.formatEther(allowance)
+            ethers.utils.formatUnits(allowance, 18)
         ).toFixed(2);
         if (allowance.gt(ethers.BigNumber.from(0))) {
             document.getElementById("approvalStatus").innerText =
@@ -635,10 +634,9 @@ async function approveTokens() {
         return;
     }
     try {
-        document.getElementById("approveBtn").innerText = "Approving...";
+document.getElementById("approveBtn").innerText = "Approving...";
         document.getElementById("approveBtn").disabled = true;
 
-        // Approve full wallet balance so user doesn't need to re-approve
         const address = await signer.getAddress();
         const currentBalance = await tokenContract.balanceOf(address);
         const approveAmount = currentBalance;
@@ -670,7 +668,7 @@ async function approveTokens() {
         showStatus("❌ " + err.message, false);
     }
 }
-
+    
 // Compile String Segment
 async function compileString() {
     const segment = document.getElementById("compileInput").value;
@@ -709,8 +707,8 @@ async function compileString() {
 
         showStatus("⏳ Compiling on-chain...", true);
         await tx.wait();
-        
-        document.getElementById("compileInput").value = "";
+
+document.getElementById("compileInput").value = "";
         document.getElementById("compileCharCount").innerText = "0/80";
         document.getElementById("compileBtn").innerText =
             "⚙️ Compile Segment (Free)";
@@ -746,24 +744,19 @@ async function refreshCompilerState() {
         ).toFixed(2);
         const count = compileCount.toNumber();
 
-        // Update compile badge
         document.getElementById("compileCount").innerText =
             count + (count === 1 ? " segment" : " segments");
-
-        if (count > 0) {
-            // Show preview
+        
+if (count > 0) {
             document.getElementById("compiledPreview")
                 .classList.remove("hidden");
-            // Show compiled string with segment count indicator
-        const segmentLabel = count > 1
-            ? "[" + count + " segments joined] "
-            : "[1 segment] ";
-        document.getElementById("compiledText").innerText =
-            segmentLabel + compiledString;
+            const segmentLabel = count > 1
+                ? "[" + count + " segments joined] "
+                : "[1 segment] ";
+            document.getElementById("compiledText").innerText =
+                segmentLabel + compiledString;
             document.getElementById("tokenCost").innerText =
                 formattedCost + " DAPP";
-
-            // Update publish card
             document.getElementById("publishPreview").innerText =
                 compiledString;
             document.getElementById("publishCost").innerText =
@@ -784,7 +777,7 @@ async function refreshCompilerState() {
         console.log("Compiler state error:", err);
     }
 }
-
+    
 // Publish Message
 async function publishMessage() {
     if (!compilerContract) {
@@ -820,9 +813,9 @@ async function publishMessage() {
         document.getElementById("txLink")
             .classList.remove("hidden");
 
-       showStatus("✅ Message published successfully!", true);
-document.getElementById("publishBtn").innerText = 
-            "📝 Publish to Blockchain";
+        showStatus("✅ Message published successfully!", true);
+        document.getElementById("publishBtn").innerText =
+            "🚀 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
 
         await getMessage();
@@ -832,7 +825,7 @@ document.getElementById("publishBtn").innerText =
 
     } catch (err) {
         document.getElementById("publishBtn").innerText =
-            "📝 Publish to Blockchain";
+            "🚀 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
         showStatus("❌ " + err.message, false);
     }
@@ -858,7 +851,6 @@ async function clearCompiled() {
         showStatus("❌ " + err.message, false);
     }
 }
-
 
 // Filter History By Wallet Address
 async function filterHistory() {
@@ -891,25 +883,19 @@ async function filterHistory() {
         const currentBlock = await provider.getBlockNumber();
         const fromBlock = Math.max(0, currentBlock - 50000);
 
-        // Search StringCompiler events
-        const compilerFilter = compilerContract.filters.MessagePublished();
+        const compilerFilter = compilerContract
+            .filters.MessagePublished();
         const compilerEvents = await compilerContract.queryFilter(
-            compilerFilter,
-            fromBlock,
-            currentBlock
+            compilerFilter, fromBlock, currentBlock
         );
 
-        // Search HelloWorld direct events
         const hwFilter = contract.filters.MessageUpdated();
         const hwEvents = await contract.queryFilter(
-            hwFilter,
-            fromBlock,
-            currentBlock
+            hwFilter, fromBlock, currentBlock
         );
 
-        // Normalize compiler events
         const normalizedCompiler = compilerEvents.map(event => ({
-            sender: event.args[0] ||  event.args.user,
+            sender: event.args[0] || event.args.user,
             message: event.args.finalMessage,
             timestamp: event.args.timestamp,
             txHash: event.transactionHash,
@@ -918,7 +904,6 @@ async function filterHistory() {
             type: "compiled"
         }));
 
-        // Normalize HelloWorld events
         const normalizedHW = hwEvents.map(event => ({
             sender: event.args.sender,
             message: event.args.newMessage,
@@ -929,11 +914,16 @@ async function filterHistory() {
             type: "direct"
         }));
 
-        // Combine all events
-        const allEvents = [...normalizedCompiler, ...normalizedHW]
+        const compilerTxHashes = new Set(
+            normalizedCompiler.map(e => e.txHash)
+        );
+        const filteredHW = normalizedHW.filter(
+            e => !compilerTxHashes.has(e.txHash)
+        );
+
+        const allEvents = [...normalizedCompiler, ...filteredHW]
             .sort((a, b) => b.blockNumber - a.blockNumber);
 
-        // Filter by address
         const filtered = allEvents.filter(event =>
             event.sender.toLowerCase() ===
             filterAddress.toLowerCase()
@@ -986,39 +976,37 @@ async function switchWallet() {
         return;
     }
     try {
-    showStatus("🔄 Switching wallet...", true);
+        showStatus("🔄 Switching wallet...", true);
 
-    // Revoke current session to force fresh picker
-    try {
-        await window.ethereum.request({
-            method: "wallet_revokePermissions",
-            params: [{ eth_accounts: {} }]
+        try {
+            await window.ethereum.request({
+                method: "wallet_revokePermissions",
+                params: [{ eth_accounts: {} }]
+            });
+        } catch (revokeErr) {
+            console.log("Revoke not supported:", revokeErr);
+        }
+
+        const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts"
         });
-    } catch (revokeErr) {
-        // Some wallets don't support revoke — continue anyway
-        console.log("Revoke not supported:", revokeErr);
-    }
 
-    // Request fresh connection — triggers popup (only once)
-    const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-    });
+        if (!accounts || accounts.length === 0) {
+            showStatus("❌ No accounts found.", false);
+            return;
+        }
 
-    if (!accounts || accounts.length === 0) {
-        showStatus("❌ No accounts found.", false);
-        return;
-    }
+        const chainId = await window.ethereum.request({
+            method: "eth_chainId"
+        });
+        if (chainId !== "0x66eee") {
+            showStatus(
+                "❌ Wrong network. Switch to Arbitrum Sepolia.",
+                false
+            );
+            return;
+        }
 
-    // Verify correct network
-    const chainId = await window.ethereum.request({
-        method: "eth_chainId"
-    });
-    if (chainId !== "0x66eee") {
-        showStatus("❌ Wrong network. Switch to Arbitrum Sepolia.", false);
-        return;
-    }
-
-        // Reinitialize contracts
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
@@ -1076,8 +1064,7 @@ function disconnectWallet() {
     document.getElementById("filterStatus").innerText = "";
     document.getElementById("disconnectBtn").classList.add("hidden");
     document.getElementById("switchBtn").classList.add("hidden");
-    
-    // Reset token and compiler state
+
     document.getElementById("tokenBalance").innerText =
         "Connect wallet to load...";
     document.getElementById("approvalStatus").innerText =
@@ -1139,3 +1126,12 @@ window.clearCompiled = clearCompiled;
 window.switchWallet = switchWallet;
 
 }); // End DOMContentLoaded
+// GOLDEN VERSION 4 - complete app.js with all fixes
+// https://raw.githubusercontent.com/0xTimberZx/MyDapp/refs/heads/main/app.js
+
+
+
+
+
+
+    
