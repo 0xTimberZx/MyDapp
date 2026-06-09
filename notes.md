@@ -218,7 +218,7 @@ This DApp was built entirely from an iPhone using:
 | HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
 | StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
 | DAPP Token on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
-| Faucet Webpage | []
+| Faucet Webpage | [https://0xtimberzx.github.io/MyDapp/faucet]
 ---
 
 ## 📄 License
