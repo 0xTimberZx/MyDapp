@@ -64,17 +64,17 @@ and view the complete transaction history — all from a mobile browser.
 | Name | DApp Token |
 | Symbol | DAPP |
 | Initial Supply | 1,000,000 DAPP |
-| Address | 0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63 |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
+| Address | 0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04 |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04) |
 
 ### StringCompiler
 | Detail | Value |
 |---|---|
-| Address | 0x5E16f043e19A8aAABc8A0d7B29C465784aF77092 |
+| Address | 0xE348DF4c401bBEde1988DBFD43EDa3833e71F965 |
 | Price Per Compile | 10 DAPP (first segment free) |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x5e16f043e19a8aaabc8a0d7b29c465784af77092) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x5E16f043e19A8aAABc8A0d7B29C465784aF77092) |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xE348DF4c401bBEde1988DBFD43EDa3833e71F965) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0xE348DF4c401bBEde1988DBFD43EDa3833e71F965) |
 
 ### Faucet
 |---|---|
