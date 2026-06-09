@@ -79,10 +79,10 @@ and view the complete transaction history — all from a mobile browser.
 ### Faucet
 |---|---|
 | Detail | Value |
-| Address | 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF |
+| Address | 0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA |
 | Eth Send per Claim | 0.005 ETH ( every 12 hours ) |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA) |
 ---
 
 ## 🔄 How The String Compiler WorksUser approves DAPP tokens for StringCompiler
