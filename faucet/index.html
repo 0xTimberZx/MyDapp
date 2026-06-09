@@ -684,6 +684,21 @@
   .btn-claim.dripping {
     animation: drip 0.5s ease;
   }
+
+  :root {
+  --primary: #58a6ff;
+  --bg-dark: #0d1117;
+  --text-muted: #8b949e;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary);
+}
+
+.message-display, .history-message {
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
 </style>
 </head>
 <body>
@@ -1371,20 +1386,6 @@ if (window.ethereum) {
       console.error(e);
     }
   });
-}
-  :root {
-  --primary: #58a6ff;
-  --bg-dark: #0d1117;
-  --text-muted: #8b949e;
-}
-
-button:focus-visible {
-  outline: 2px solid var(--primary);
-}
-
-.message-display, .history-message {
-  overflow-wrap: break-word;
-  max-width: 100%;
 }
 
 });
