@@ -147,6 +147,17 @@ contract StringCompiler {
         require(msg.sender == owner, "Not owner");
         pricePerCompile = newPrice;
     }
+    //StringCompiler requires one redeploy. Set new tokens address.
+    function setTokenContract(
+        address _tokenContract
+    ) public {
+        require(msg.sender == owner, "Not owner");
+        require(
+            _tokenContract != address(0),
+            "Zero address"
+        );
+        tokenContract = _tokenContract;
+    }
 
     // Owner can withdraw collected tokens
     function withdrawTokens(
