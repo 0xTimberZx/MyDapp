@@ -1157,6 +1157,31 @@ $("netStatusBox").className = "status-box error";
     });
   }
 
+  // Detect correct provider
+async function getProvider() {
+    if (typeof window.ethereum === "undefined") {
+        throw new Error("No wallet found");
+    }
+
+    // Handle multiple injected providers
+    if (window.ethereum.providers) {
+        // Multiple wallets installed
+        const metamask = window.ethereum.providers.find(
+            p => p.isMetaMask && !p.isBraveWallet
+        );
+        const brave = window.ethereum.providers.find(
+            p => p.isBraveWallet
+        );
+        // Prefer MetaMask, fall back to Brave
+        return new ethers.providers.Web3Provider(
+            metamask || brave || window.ethereum
+        );
+    }
+
+    // Single provider
+    return new ethers.providers.Web3Provider(window.ethereum);
+}
+
   // ── CONNECT ──────────────────────────────────────────────
   const connectBtn = $("connectBtn");
   if (connectBtn) {
@@ -1168,7 +1193,7 @@ $("netStatusBox").className = "status-box error";
       try {
 connectBtn.textContent = "Connecting…";
         connectBtn.disabled = true;
-        provider = new ethers.providers.Web3Provider(window.ethereum);
+        provider = await getProvider();
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
@@ -1187,7 +1212,7 @@ connectBtn.textContent = "Connecting…";
             });
             $("wrongNet").classList.remove("visible");
             // Re-init after switch
-            provider = new ethers.providers.Web3Provider(window.ethereum);
+            provider = await getProvider();
             signer = provider.getSigner();
           } catch (switchErr) {
             showStatus("error", "Wrong Network", "Please switch to Arbitrum Sepolia (421614).");
@@ -1346,7 +1371,7 @@ if (window.ethereum) {
       return;
     }
 
-    provider = new ethers.providers.Web3Provider(window.ethereum);
+    provider = await getProvider();
     signer = provider.getSigner();
     userAddress = accounts[0];
 
