@@ -292,6 +292,31 @@ if (compileInputEl) {
     });
 }
 
+// Detect correct provider
+async function getProvider() {
+    if (typeof window.ethereum === "undefined") {
+        throw new Error("No wallet found");
+    }
+
+    // Handle multiple injected providers
+    if (window.ethereum.providers) {
+        // Multiple wallets installed
+        const metamask = window.ethereum.providers.find(
+            p => p.isMetaMask && !p.isBraveWallet
+        );
+        const brave = window.ethereum.providers.find(
+            p => p.isBraveWallet
+        );
+        // Prefer MetaMask, fall back to Brave
+        return new ethers.providers.Web3Provider(
+            metamask || brave || window.ethereum
+        );
+    }
+
+    // Single provider
+    return new ethers.providers.Web3Provider(window.ethereum);
+}
+    
 // Connect Wallet
 async function connectWallet() {
     if (typeof window.ethereum === "undefined") {
@@ -353,7 +378,7 @@ async function connectWallet() {
         }
 
         // Setup ethers
-        provider = new ethers.providers.Web3Provider(window.ethereum);
+        provider = await getProvider();
         signer = provider.getSigner();
 
      //Check all 3 contracts   
