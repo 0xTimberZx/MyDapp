@@ -71,10 +71,10 @@ and view the complete transaction history — all from a mobile browser.
 ### StringCompiler
 | Detail | Value |
 |---|---|
-| Address | 0xE348DF4c401bBEde1988DBFD43EDa3833e71F965 |
+| Address | 0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe |
 | Price Per Compile | 10 DAPP (first segment free) |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xE348DF4c401bBEde1988DBFD43EDa3833e71F965) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0xE348DF4c401bBEde1988DBFD43EDa3833e71F965) |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
 
 ### Faucet
 |---|---|
