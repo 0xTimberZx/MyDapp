@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DebugHub</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <div class="title">DebugHub</div>
+  <div class="subtitle">Telemetry &amp; diagnostics for the 0xTimberzx ecosystem</div>
+</header>
+
+<!-- Gate screen -->
+<div id="gate-screen" class="gate">
+  <p><em>Connect your owner wallet to view diagnostics.</em></p>
+  <button id="connect-btn">Connect Wallet</button>
+  <div id="gate-status" class="status-line">Checking connection...</div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" style="display:none;">
+  <div class="app-selector">
+    <label>Viewing app</label>
+    <select id="app-select"></select>
+    <div class="subtitle" style="margin-top:0.5rem;">
+      Signed in as <span id="owner-address"></span>
+    </div>
+  </div>
+
+  <div class="tab-nav" id="tab-nav"></div>
+
+  <main id="content"></main>
+</div>
+
+<script src="gate.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
