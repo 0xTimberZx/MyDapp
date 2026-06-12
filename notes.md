@@ -1,4 +1,4 @@
-# 🌐 BlockpotDAO — Decentralized Message Board
+# 🌐 DAppMe (HelloWorld) — Decentralized Message Board
 
 A fully on-chain decentralized message board built on Arbitrum Sepolia
 testnet. Users connect their wallet, compile string segments into a final
