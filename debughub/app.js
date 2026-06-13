@@ -450,7 +450,7 @@
     });
   }
 
-  DebugHubGate.init(
+  Gate.init(
     showDashboard,
     function (addr) {
       showGate("Connected as " + shortWallet(addr) + " — this wallet is not authorized.", true);
