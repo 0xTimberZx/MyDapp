@@ -188,7 +188,9 @@ This DApp was built entirely from an iPhone using:
 
 | Resource | URL |
 |---|---|
-| Live DApp | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/) |
+| DAppMe Live| [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/) |
+| Faucet Live | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/faucet) |
+| Debughub ref | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/debughub/index.html) |
 | GitHub Repo | [github.com/0xTimberzx/mydapp](https://github.com/0xTimberzx/mydapp) |
 | Gist | [View Gist](https://gist.github.com/0xTimberZx/c7f0b7d3d7a4938bd983dd49a81c3ce4) |
 | Arbiscan | [View Contracts](https://sepolia.arbiscan.io/address/0x0E6A8a8047530aA5cB7d2F78df58D465CF0E6a1d) |
