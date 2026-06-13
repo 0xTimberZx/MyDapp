@@ -191,7 +191,7 @@
     "-32002": "Wallet already has a pending request — open MetaMask/Brave and check for a waiting popup.",
     "-32603": "Internal JSON-RPC error — often a contract revert or bad call data.",
     "4001": "The wallet rejected the request — user likely tapped Cancel.",
-    "-32000": "Invalid input — often insufficient funds or bad transaction parameters.",
+    "-32000": "Invalid input — often insufficient funds, bad transaction parameters, or maxFeePerGas below the current base fee (network fees moved faster than the quote).",
     "-32700": "Parse error — the RPC received malformed JSON.",
     "-32601": "Method not found — the RPC node doesn't support this call."
   };
@@ -386,6 +386,22 @@
     });
   }
 
+  function exportCurrentApp() {
+    var events = loadEvents(state.selectedApp);
+    var json = JSON.stringify(events, null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = state.selectedApp + "_debughub_export.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
   function renderAppSelector() {
     var select = document.getElementById("app-select");
     if (!select) return;
@@ -399,6 +415,11 @@
       state.selectedApp = select.value;
       renderContent();
     });
+
+    var exportBtn = document.getElementById("export-btn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", exportCurrentApp);
+    }
   }
 
   function showDashboard(address) {
@@ -450,7 +471,7 @@
     });
   }
 
-  Gate.init(
+  DebugHubGate.init(
     showDashboard,
     function (addr) {
       showGate("Connected as " + shortWallet(addr) + " — this wallet is not authorized.", true);
@@ -464,4 +485,3 @@
     }
   );
 })();
-

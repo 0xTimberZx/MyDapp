@@ -110,6 +110,19 @@ header {
   font-size: 0.9rem;
 }
 
+.export-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 /* ---------- tab nav ---------- */
 
 .tab-nav {
@@ -347,4 +360,3 @@ main {
   height: 100%;
   background: var(--pass);
 }
-
