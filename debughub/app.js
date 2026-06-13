@@ -140,6 +140,197 @@
       .join("");
   }
 
+  function renderCheckpointsTab(appKey) {
+    var events = loadEvents(appKey);
+
+    var checkpoints = events.filter(function (evt) {
+      return evt.type === "checkpoint" || evt.type === "security";
+    });
+
+    if (checkpoints.length === 0) {
+      return (
+        '<div class="empty-state">' +
+        '<div class="big">No checkpoints yet</div>' +
+        "<div>Checkpoint and security events from " + appKey + " will appear here.</div>" +
+        "</div>"
+      );
+    }
+
+    // newest first
+    checkpoints.sort(function (a, b) { return b.timestamp - a.timestamp; });
+
+    return (
+      '<div class="timeline">' +
+      checkpoints
+        .map(function (evt) {
+          var cls = evt.status === "fail" ? "fail" : "pass";
+          var kindLabel = evt.type === "security" ? "Security" : "Checkpoint";
+          return (
+            '<div class="timeline-item">' +
+            '<div class="lamp ' + cls + '"></div>' +
+            '<div class="timeline-body">' +
+            '<div class="timeline-name">' + evt.name + "</div>" +
+            '<div class="timeline-meta">' +
+            "<span>" + kindLabel + "</span>" +
+            "<span>" + shortWallet(evt.wallet) + "</span>" +
+            "<span>" + formatTime(evt.timestamp) + "</span>" +
+            "</div>" +
+            '<div class="timeline-session">' + evt.sessionId + "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  // ---------- error code lookup ----------
+
+  var ERROR_EXPLANATIONS = {
+    "-32002": "Wallet already has a pending request — open MetaMask/Brave and check for a waiting popup.",
+    "-32603": "Internal JSON-RPC error — often a contract revert or bad call data.",
+    "4001": "The wallet rejected the request — user likely tapped Cancel.",
+    "-32000": "Invalid input — often insufficient funds or bad transaction parameters.",
+    "-32700": "Parse error — the RPC received malformed JSON.",
+    "-32601": "Method not found — the RPC node doesn't support this call."
+  };
+
+  function explainError(evt) {
+    var code = evt.code !== null && evt.code !== undefined ? String(evt.code) : null;
+    if (code && ERROR_EXPLANATIONS[code]) {
+      return ERROR_EXPLANATIONS[code];
+    }
+    if (evt.message) {
+      return evt.message;
+    }
+    return "Unrecognized error — see raw details below.";
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderErrorsTab(appKey) {
+    var events = loadEvents(appKey);
+    var errors = events.filter(function (evt) { return evt.type === "error"; });
+
+    if (errors.length === 0) {
+      return (
+        '<div class="empty-state">' +
+        '<div class="big">No errors logged</div>' +
+        "<div>Caught errors from " + appKey + " will appear here.</div>" +
+        "</div>"
+      );
+    }
+
+    // group + dedupe by function + code + message
+    var groups = {};
+    var order = [];
+
+    errors.forEach(function (evt) {
+      var key = evt.function + "|" + evt.code + "|" + evt.message;
+      if (!groups[key]) {
+        groups[key] = {
+          function: evt.function,
+          code: evt.code,
+          message: evt.message,
+          count: 0,
+          lastSeen: evt.timestamp,
+          raw: evt
+        };
+        order.push(key);
+      }
+      var g = groups[key];
+      g.count += 1;
+      if (evt.timestamp > g.lastSeen) {
+        g.lastSeen = evt.timestamp;
+        g.raw = evt;
+      }
+    });
+
+    var groupList = order.map(function (key) { return groups[key]; });
+    groupList.sort(function (a, b) { return b.lastSeen - a.lastSeen; });
+
+    return groupList
+      .map(function (g, i) {
+        var rawJson = JSON.stringify(g.raw, null, 2);
+        return (
+          '<div class="error-card">' +
+          '<div class="error-explanation">' + escapeHtml(explainError(g.raw)) + "</div>" +
+          '<div class="error-meta">' +
+          "<span><strong>" + escapeHtml(g.function) + "</strong>()</span>" +
+          "<span>x" + g.count + "</span>" +
+          "<span>" + formatTime(g.lastSeen) + "</span>" +
+          "</div>" +
+          "<details>" +
+          "<summary>Raw error details</summary>" +
+          '<pre class="error-raw" id="raw-' + i + '">' + escapeHtml(rawJson) + "</pre>" +
+          '<button class="copy-btn" data-target="raw-' + i + '">Copy</button>' +
+          "</details>" +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
+  function renderWalletsTab(appKey) {
+    var events = loadEvents(appKey);
+
+    var wallets = {}; // addr -> { connections, errors, pass, fail }
+    var order = [];
+
+    events.forEach(function (evt) {
+      var addr = evt.wallet || "unknown";
+      if (!wallets[addr]) {
+        wallets[addr] = { connections: 0, errors: 0, pass: 0, fail: 0 };
+        order.push(addr);
+      }
+      var w = wallets[addr];
+
+      if (evt.type === "session_start") w.connections += 1;
+      if (evt.type === "error") w.errors += 1;
+      if (evt.type === "checkpoint" || evt.type === "security") {
+        if (evt.status === "fail") w.fail += 1;
+        else w.pass += 1;
+      }
+    });
+
+    if (order.length === 0) {
+      return (
+        '<div class="empty-state">' +
+        '<div class="big">No wallets seen yet</div>' +
+        "<div>Wallets that connect to " + appKey + " will appear here.</div>" +
+        "</div>"
+      );
+    }
+
+    // sort by most connections first
+    order.sort(function (a, b) { return wallets[b].connections - wallets[a].connections; });
+
+    return order
+      .map(function (addr) {
+        var w = wallets[addr];
+        var total = w.pass + w.fail;
+        var rate = total > 0 ? Math.round((w.pass / total) * 100) : 100;
+
+        return (
+          '<div class="wallet-card">' +
+          '<div class="wallet-addr">' + shortWallet(addr === "unknown" ? null : addr) + "</div>" +
+          '<div class="session-row"><span class="label">Connections</span><span class="value">' + w.connections + "</span></div>" +
+          '<div class="session-row"><span class="label">Errors</span><span class="value">' + w.errors + "</span></div>" +
+          '<div class="session-row"><span class="label">Success rate</span><span class="value">' + rate + "%</span></div>" +
+          '<div class="rate-bar"><div class="rate-bar-fill" style="width:' + rate + '%"></div></div>' +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
   function renderPlaceholderTab(name) {
     return (
       '<div class="empty-state">' +
@@ -154,6 +345,25 @@
     if (!content) return;
     if (state.activeTab === "Sessions") {
       content.innerHTML = renderSessionsTab(state.selectedApp);
+    } else if (state.activeTab === "Checkpoints") {
+      content.innerHTML = renderCheckpointsTab(state.selectedApp);
+    } else if (state.activeTab === "Errors") {
+      content.innerHTML = renderErrorsTab(state.selectedApp);
+      content.querySelectorAll(".copy-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var pre = document.getElementById(btn.getAttribute("data-target"));
+          if (!pre) return;
+          var text = pre.textContent;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              btn.textContent = "Copied!";
+              setTimeout(function () { btn.textContent = "Copy"; }, 1200);
+            });
+          }
+        });
+      });
+    } else if (state.activeTab === "Wallets") {
+      content.innerHTML = renderWalletsTab(state.selectedApp);
     } else {
       content.innerHTML = renderPlaceholderTab(state.activeTab);
     }
@@ -254,3 +464,4 @@
     }
   );
 })();
+

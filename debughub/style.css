@@ -217,3 +217,134 @@ main {
 .status-badge.pass { color: var(--pass); border: 1px solid var(--pass); }
 .status-badge.fail { color: var(--fail); border: 1px solid var(--fail); }
 .status-badge.active { color: var(--active); border: 1px solid var(--active); }
+
+/* ---------- checkpoints timeline ---------- */
+
+.timeline {
+  position: relative;
+  padding-left: 1.1rem;
+  border-left: 1px solid var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+
+.timeline-item .lamp {
+  position: absolute;
+  left: -1.45rem;
+  top: 0.2rem;
+}
+
+.timeline-body { flex: 1; }
+
+.timeline-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.timeline-meta {
+  display: flex;
+  gap: 0.7rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+.timeline-session {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 0.15rem;
+}
+
+/* ---------- errors tab ---------- */
+
+.error-card {
+  border: 1px solid var(--fail);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.error-explanation {
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.error-meta {
+  display: flex;
+  gap: 0.7rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-bottom: 0.4rem;
+}
+
+.error-card details {
+  margin-top: 0.4rem;
+}
+
+.error-card summary {
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.error-raw {
+  background: #0a0d11;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.copy-btn {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.72rem;
+}
+
+/* ---------- wallets tab ---------- */
+
+.wallet-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.wallet-addr {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.rate-bar {
+  margin-top: 0.5rem;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.rate-bar-fill {
+  height: 100%;
+  background: var(--pass);
+}
+
