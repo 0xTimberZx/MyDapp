@@ -852,6 +852,8 @@ button:focus-visible {
   </div>
 </div>
 
+<script>window.DEBUGHUB_CONFIG = { appName: "Faucet" };</script>
+<script src="https://0xtimberzx.github.io/MyDapp/debughub/sdk/debugger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -1198,8 +1200,12 @@ connectBtn.textContent = "Connecting…";
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
 
+        DebugHub.startSession();
+        DebugHub.logCheckpoint("Wallet Connected", "pass");
+
         const network = await provider.getNetwork();
         if (network.chainId !== CHAIN_ID) {
+          DebugHub.logSecurity("Chain Check", "fail");
           $("wrongNet").classList.add("visible");
           connectBtn.textContent = "Connect Wallet";
           connectBtn.disabled = false;
@@ -1210,15 +1216,19 @@ connectBtn.textContent = "Connecting…";
               method: "wallet_switchEthereumChain",
               params: [{ chainId: "0x" + CHAIN_ID.toString(16) }]
             });
+            DebugHub.logSecurity("Chain Check", "pass");
             $("wrongNet").classList.remove("visible");
             // Re-init after switch
             provider = await getProvider();
             signer = provider.getSigner();
           } catch (switchErr) {
+            DebugHub.logError("switchChain", switchErr);
             showStatus("error", "Wrong Network", "Please switch to Arbitrum Sepolia (421614).");
 
             return;
           }
+        } else {
+          DebugHub.logSecurity("Chain Check", "pass");
         }
 
         $("wrongNet").classList.remove("visible");
@@ -1310,12 +1320,15 @@ if (claimBtn) {
         const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
 
         // Estimate gas with 50% buffer (your standard pattern)
+        const __gasStart = Date.now();
         const gasEstimate = await vault.estimateGas.claim();
         const gasWithBuffer = gasEstimate.mul(150).div(100);
+        DebugHub.logPerf("gasEstimate", Date.now() - __gasStart);
 
         claimBtn.textContent = "Sending…";
 
         const tx = await vault.claim({ gasLimit: gasWithBuffer });
+        DebugHub.logCheckpoint("Transaction Submitted", "pass");
     claimBtn.textContent = "Confirming…";
         showStatus(
   "success",
@@ -1325,6 +1338,7 @@ if (claimBtn) {
 );
 
         await tx.wait(1);
+        DebugHub.logCheckpoint("Transaction Confirmed", "pass");
 
         // Verify on-chain
         await verifyTx(tx.hash);
@@ -1347,6 +1361,8 @@ if (claimBtn) {
         showGesture();
 
       } catch (err) {
+        DebugHub.logError("claim", err);
+        DebugHub.logCheckpoint("Transaction Confirmed", "fail");
         claimBtn.classList.remove("btn-loading");
         claimBtn.classList.add("btn-claim");
         claimBtn.textContent = "Claim ETH";
@@ -1419,3 +1435,4 @@ if (window.ethereum) {
 </body>
 </html>
  
+
