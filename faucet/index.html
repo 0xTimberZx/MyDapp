@@ -1347,6 +1347,7 @@ if (claimBtn) {
 
         claimBtn.textContent = "Sending…";
 
+        DebugHub.logCheckpoint("Claim Requested", "pass");
         const tx = await vault.claim({
           gasLimit: gasWithBuffer,
           maxFeePerGas: maxFeePerGas,

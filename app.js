@@ -786,6 +786,7 @@ document.getElementById("approveBtn").innerText = "Approving...";
 
         const feeData = await provider.getFeeData();
         const __gasStart = Date.now();
+        DebugHub.logCheckpoint("Approve Requested", "pass");
         const tx = await tokenContract.approve(
             COMPILER_ADDRESS,
             approveAmount,
@@ -850,6 +851,7 @@ async function compileString() {
         DebugHub.logPerf("gasEstimate_compileString", Date.now() - __gasStart);
         const gasWithBuffer = gasEstimate.mul(150).div(100);
 
+        DebugHub.logCheckpoint("Compile Requested", "pass");
         const tx = await compilerContract.compileString(segment, {
             gasLimit: gasWithBuffer,
             maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
@@ -953,6 +955,7 @@ async function publishMessage() {
         DebugHub.logPerf("gasEstimate_publishMessage", Date.now() - __gasStart);
         const gasWithBuffer = gasEstimate.mul(150).div(100);
 
+        DebugHub.logCheckpoint("Publish Requested", "pass");
         const tx = await compilerContract.publishMessage({
             gasLimit: gasWithBuffer,
             maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
@@ -1305,7 +1308,7 @@ window.ethereum.on("accountsChanged", async () => {
 });
 
 }); // End DOMContentLoaded
-// GOLDEN VERSION 4 - complete app.js with all fixes
+// GOLDEN VERSION 5 - complete app.js with all fixes
 // https://raw.githubusercontent.com/0xTimberZx/MyDapp/refs/heads/main/app.js
 
 
