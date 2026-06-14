@@ -10,6 +10,7 @@
   var APPS = [
     { key: "Faucet", label: "0xFaucet" },
     { key: "BlockpotDAO", label: "BlockpotDAO" },
+    { key: "MessageBoard", label: "MessageBoard" },
     { key: "TestApp", label: "TestApp (dev)" }
   ];
 
@@ -485,3 +486,4 @@
     }
   );
 })();
+

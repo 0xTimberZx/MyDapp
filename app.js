@@ -347,6 +347,7 @@ async function connectWallet() {
                 method: "wallet_switchEthereumChain",
                 params: [{ chainId: "0x66eee" }],
             });
+            DebugHub.logSecurity("Chain Check", "pass");
         } catch (switchError) {
             if (switchError.code === 4902) {
                 await window.ethereum.request({
@@ -367,7 +368,10 @@ async function connectWallet() {
                         ]
                     }]
                 });
+                DebugHub.logSecurity("Chain Check", "pass");
             } else {
+                DebugHub.logSecurity("Chain Check", "fail");
+                DebugHub.logError("switchChain", switchError);
                 showStatus(
                     "❌ Failed to switch network: " + switchError.message,
                     false
@@ -391,6 +395,7 @@ if (
     tokenCode === "0x" ||
     compilerCode === "0x"
 ) {
+    DebugHub.logSecurity("Contract Check", "fail");
     showStatus(
         "❌ One or more contract addresses are invalid.",
         false
@@ -399,6 +404,7 @@ if (
     resetConnectBtn();
     return;
 }
+DebugHub.logSecurity("Contract Check", "pass");
         
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
         tokenContract = new ethers.Contract(
@@ -430,6 +436,9 @@ if (
 
         showStatus("✅ Wallet connected successfully!", true);
 
+        DebugHub.startSession();
+        DebugHub.logCheckpoint("Wallet Connected", "pass");
+
         await getMessage();
         await getHistory();
         await refreshTokenBalance();
@@ -438,6 +447,7 @@ if (
 
     } catch (err) {
         resetConnectBtn();
+        DebugHub.logError("connectWallet", err);
         showStatus("❌ " + err.message, false);
     }
 }
@@ -775,17 +785,21 @@ document.getElementById("approveBtn").innerText = "Approving...";
         const approveAmount = currentBalance;
 
         const feeData = await provider.getFeeData();
+        const __gasStart = Date.now();
         const tx = await tokenContract.approve(
             COMPILER_ADDRESS,
             approveAmount,
             {
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+                maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
+                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100)
             }
         );
+        DebugHub.logPerf("approveSubmit", Date.now() - __gasStart);
+        DebugHub.logCheckpoint("Approve Submitted", "pass");
 
         showStatus("⏳ Approval transaction sent...", true);
         await tx.wait();
+        DebugHub.logCheckpoint("Approve Confirmed", "pass");
 
         document.getElementById("approveBtn").innerText =
             "✅ Approve DAPP Tokens";
@@ -798,6 +812,8 @@ document.getElementById("approveBtn").innerText = "Approving...";
         document.getElementById("approveBtn").innerText =
             "✅ Approve DAPP Tokens";
         document.getElementById("approveBtn").disabled = false;
+        DebugHub.logError("approveTokens", err);
+        DebugHub.logCheckpoint("Approve Confirmed", "fail");
         showStatus("❌ " + err.message, false);
     }
 }
@@ -828,18 +844,22 @@ async function compileString() {
         showStatus("⏳ Waiting for wallet confirmation...", true);
 
         const feeData = await provider.getFeeData();
+        const __gasStart = Date.now();
         const gasEstimate = await compilerContract
             .estimateGas.compileString(segment);
+        DebugHub.logPerf("gasEstimate_compileString", Date.now() - __gasStart);
         const gasWithBuffer = gasEstimate.mul(150).div(100);
 
         const tx = await compilerContract.compileString(segment, {
             gasLimit: gasWithBuffer,
-            maxFeePerGas: feeData.maxFeePerGas,
-            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+            maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100)
         });
+        DebugHub.logCheckpoint("Compile Submitted", "pass");
 
         showStatus("⏳ Compiling on-chain...", true);
         await tx.wait();
+        DebugHub.logCheckpoint("Compile Confirmed", "pass");
 
 document.getElementById("compileInput").value = "";
         document.getElementById("compileCharCount").innerText = "0/80";
@@ -855,6 +875,8 @@ document.getElementById("compileInput").value = "";
         document.getElementById("compileBtn").innerText =
             "⚙️ Compile Segment (Free)";
         document.getElementById("compileBtn").disabled = false;
+        DebugHub.logError("compileString", err);
+        DebugHub.logCheckpoint("Compile Confirmed", "fail");
         showStatus("❌ " + err.message, false);
     }
 }
@@ -925,18 +947,22 @@ async function publishMessage() {
         showStatus("⏳ Waiting for wallet confirmation...", true);
 
         const feeData = await provider.getFeeData();
+        const __gasStart = Date.now();
         const gasEstimate = await compilerContract
             .estimateGas.publishMessage();
+        DebugHub.logPerf("gasEstimate_publishMessage", Date.now() - __gasStart);
         const gasWithBuffer = gasEstimate.mul(150).div(100);
 
         const tx = await compilerContract.publishMessage({
             gasLimit: gasWithBuffer,
-            maxFeePerGas: feeData.maxFeePerGas,
-            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+            maxFeePerGas: feeData.maxFeePerGas.mul(130).div(100),
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100)
         });
+        DebugHub.logCheckpoint("Publish Submitted", "pass");
 
         showStatus("⏳ Publishing to blockchain...", true);
         await tx.wait();
+        DebugHub.logCheckpoint("Publish Confirmed", "pass");
 
         const arbiscanUrl =
             "https://sepolia.arbiscan.io/tx/" + tx.hash;
@@ -970,6 +996,8 @@ setTimeout(async () => {
         document.getElementById("publishBtn").innerText =
             "🚀 Publish to Blockchain";
         document.getElementById("publishBtn").disabled = false;
+        DebugHub.logError("publishMessage", err);
+        DebugHub.logCheckpoint("Publish Confirmed", "fail");
         showStatus("❌ " + err.message, false);
     }
 }
@@ -1174,6 +1202,10 @@ async function switchWallet() {
         showStatus("✅ Switched to " +
             address.slice(0,6) + "..." + address.slice(-4), true);
 
+        DebugHub.endSession();
+        DebugHub.startSession();
+        DebugHub.logCheckpoint("Wallet Connected", "pass");
+
         await getMessage();
         await getHistory();
         await refreshTokenBalance();
@@ -1184,6 +1216,7 @@ async function switchWallet() {
         if (err.code === 4001) {
             showStatus("⚠️ Wallet switch cancelled.", false);
         } else {
+            DebugHub.logError("switchWallet", err);
             showStatus("❌ " + err.message, false);
         }
     }
@@ -1191,6 +1224,7 @@ async function switchWallet() {
 
 // Disconnect Wallet
 function disconnectWallet() {
+    DebugHub.endSession();
     provider = null;
     signer = null;
     contract = null;
@@ -1275,8 +1309,3 @@ window.ethereum.on("accountsChanged", async () => {
 // https://raw.githubusercontent.com/0xTimberZx/MyDapp/refs/heads/main/app.js
 
 
-
-
-
-
-    
