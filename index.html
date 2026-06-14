@@ -190,8 +190,25 @@
 
     </div>
 
+    <script>window.DEBUGHUB_CONFIG = { appName: "MessageBoard" };</script>
+    <script src="https://0xtimberzx.github.io/MyDapp/debughub/sdk/debugger.js"></script>
+    <script>
+      if (!window.DebugHub) {
+        window.DebugHub = {
+          startSession: function () {},
+          endSession: function () {},
+          logCheckpoint: function () {},
+          logError: function () {},
+          logPerf: function () {},
+          logSecurity: function () {}
+        };
+        console.warn("⚠ DebugHub SDK did not load — running without telemetry.");
+      }
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="app.js" defer></script>
 
 </body>
 </html>
+
