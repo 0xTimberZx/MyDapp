@@ -151,12 +151,3 @@ Add new codes here AND in app.js as they're encountered - this list
 should stay in sync with the live lookup table.
 
 ---
-
-## Open items
-- [ ] Live-test BlockpotDAO stake/unstake/claim/upgrade/push with the
-      new nonce + Requested-checkpoint fixes
-- [ ] Consider deleting /debughub-test/ once future SDK changes are
-      verified there (or keep as permanent sandbox)
-- [ ] 0xFaucet post-claim "thank you + random name" - randomness
-      mechanism still TBD, raise only when a natural implementation
-      point comes up
