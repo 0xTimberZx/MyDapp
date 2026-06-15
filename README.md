@@ -121,6 +121,14 @@ Deployed: [06/05/06]
 Verified: Sourcify ✔
 
 ## 🗂️ Project Structuremy-dapp/
+0xtimberzx.github.io/blockpotdao/
+├── app.js/         BlockpotDao (ethers and abis)
+├── style.css/        
+├── index.html.     BlockpotDAO (vaults + stakes + timer, React) 
+└── contracts/      (Solidity contracts)
+
+
+0xtimberzx.github.io/MyDapp/
 ├── index.html           # Frontend structure and layout
 ├── style.css            # Styling and responsive design
 ├── app.js               # Blockchain logic and wallet connection
