@@ -1,4 +1,4 @@
-# BlockpotDAO (TimerGame) - Contract Registry v2
+# DAPPME (HelloWorld + Faucet) - Decentralized Message Board
 
 ## Active Contracts
 | Contract        | Address                                    | Verified    |
