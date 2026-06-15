@@ -1303,9 +1303,11 @@ window.compileString = compileString;
 window.refreshCompilerState = refreshCompilerState;
 window.publishMessage = publishMessage;
 window.clearCompiled = clearCompiled;
-window.ethereum.on("accountsChanged", async () => {
-    await connectWallet();
-});
+if (window.ethereum && window.ethereum.on) {
+    window.ethereum.on("accountsChanged", async () => {
+        await connectWallet();
+    });
+}
 
 }); // End DOMContentLoaded
 // GOLDEN VERSION 4 - complete app.js with all fixes
