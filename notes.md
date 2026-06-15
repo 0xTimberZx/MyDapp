@@ -29,8 +29,8 @@
 - [x] setTimerGame() on PrizeVault
 - [x] setTimerGame() on StakingPool
 - [x] FaucetVault v2 deployed + verified
-- [ ] Fund FaucetVault with testnet ETH
-- [ ] startGame() - after frontend tested
+- [x] Fund FaucetVault with testnet ETH
+- [x] startGame() - after frontend tested
 
 ---
 
