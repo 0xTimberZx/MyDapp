@@ -20,7 +20,7 @@
   var MAX_EVENTS = 200;
 
   var config = window.DEBUGHUB_CONFIG || {};
-  var APP_NAME = config.appName || "UnknownApp";
+  var APP_NAME = config.appName || "Unknown";
   var STORAGE_KEY = APP_NAME + "_sessions";
 
   var storageOk = true;

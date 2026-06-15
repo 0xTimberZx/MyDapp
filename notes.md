@@ -128,8 +128,13 @@ Verified: Sourcify ✔
 ├── DAppToken.sol        # DAPP ERC-20 token contract
 ├── StringCompiler.sol   # String compilation and token charging
 ├── notes.md             # Project notes and contract history
-└── README.md            # This file---
-├── Faucet.sol.          # Eth token faucet per connected wallet
+├── README.md            # This File---
+└── debughub              
+    └── app.js            # Customized Console Log for Ecosystem 
+    └── index.html        # 
+    └── gate.js           # Owner protection 
+    └── style.css         # 
+    └── sdk/debugger.js   #
 
 ## 📊 Contract ArchitectureUser Wallet
 ↓ approve()
@@ -156,6 +161,13 @@ Transaction History displayed in DApp
 - Network Switching — Auto-switches to Arbitrum Sepolia on connect
 - msg.sender — Used instead of tx.origin to prevent phishing attacks
 - Privacy — Wallet addresses displayed in abbreviated form only
+
+## Owner gate
+Hardcoded owner address in gate.js:
+0x42536623b503D4926DfAF6173B0357b7DfD19800
+Frontend-only gate. localStorage values are base64-encoded as a
+casual-snooping deterrent, not real security. Fine for a personal
+debug tool, not for anything guarding funds.
 
 ---
 
