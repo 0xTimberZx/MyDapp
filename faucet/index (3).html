@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0xFaucet — Arbitrum Sepolia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #080a0f;
+    --surface: #0e1118;
+    --border: #1e2533;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.12);
+    --accent-glow: rgba(0,229,160,0.35);
+    --warn: #ff6b35;
+    --warn-dim: rgba(255,107,53,0.12);
+    --text: #e8eaf0;
+    --muted: #5a6378;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow blob */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    height: 320px;
+    background: radial-gradient(ellipse, rgba(0,229,160,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 32px 0 8px;
+  }
+
+  .header-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .header h1 span {
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Balance row */
+  .balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .balance-box {
+    background: #0b0d14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+  }
+
+  .balance-box .label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .balance-box .value {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .balance-box .value.accent { color: var(--accent); }
+
+  .balance-box .unit {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Address display */
+  .address-box {
+    background: #0b0d14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .address-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 8px var(--accent-glow);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .address-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  /* Claim amount pill */
+  .claim-amount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 999px;
+    padding: 10px 20px;
+  }
+
+  .claim-amount .eth {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .claim-amount .sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+  }
+
+  .btn-connect {
+    background: var(--accent);
+    color: #050709;
+  }
+
+  .btn-connect:hover {
+    background: #00ffb3;
+    box-shadow: 0 0 24px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  .btn-claim {
+    background: var(--accent);
+    color: #050709;
+  }
+
+  .btn-claim:hover:not(:disabled) {
+    background: #00ffb3;
+    box-shadow: 0 0 28px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  .btn-claim:disabled {
+    background: #1a2030;
+    color: var(--muted);
+    cursor: not-allowed;
+    border: 1px solid var(--border);
+  }
+
+  .btn-loading {
+    background: #1a2030;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    cursor: not-allowed;
+    animation: blink 1.2s ease infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
+  /* Status message */
+  .status-box {
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    display: none;
+  }
+
+  .status-box.success {
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,229,160,0.3);
+    display: flex;
+  }
+
+  .status-box.error {
+    background: var(--warn-dim);
+    border: 1px solid rgba(255,107,53,0.3);
+    display: flex;
+  }
+
+  .status-box .status-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .status-box.success .status-title { color: var(--accent); }
+  .status-box.error .status-title { color: var(--warn); }
+
+  .status-box .status-body {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .status-box .tx-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    margin-top: 2px;
+  }
+
+  .status-box .tx-link:hover { text-decoration: underline; }
+
+  /* Cooldown timer */
+  .timer-box {
+    background: #0b0d14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    display: none;
+  }
+
+  .timer-box.visible { display: flex; }
+
+  .timer-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .timer-display {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .timer-bar-wrap {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 1s linear;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* Chain badge */
+  .chain-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(100,130,255,0.1);
+    border: 1px solid rgba(100,130,255,0.25);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #7c9bff;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+
+  .chain-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #7c9bff;
+    box-shadow: 0 0 6px rgba(124,155,255,0.6);
+  }
+
+  /* Wrong network */
+  .wrong-net {
+    background: var(--warn-dim);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warn);
+    text-align: center;
+    letter-spacing: 0.05em;
+    display: none;
+  }
+
+  .wrong-net.visible { display: block; }
+
+  /* Footer */
+  .footer {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.12em;
+    margin-top: 8px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2px 0;
+  }
+
+  /* Verification badge */
+  .verify-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .verify-icon {
+    font-size: 13px;
+  }
+
+  /* Add Network button */
+  .btn-addnet {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 10px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-addnet:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  .btn-addnet:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-addnet .net-icon {
+    font-size: 14px;
+  }
+
+  .net-details {
+    background: #0b0d14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .net-detail-item .nd-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .net-detail-item .nd-value {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .net-detail-item.full { grid-column: 1 / -1; }
+
+  /* Explorer link button */
+  .btn-explorer {
+    width: 100%;
+    padding: 11px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-explorer:hover {
+    border-color: #7c9bff;
+    color: #7c9bff;
+    background: rgba(100,130,255,0.06);
+    transform: translateY(-1px);
+  }
+
+  /* Popup overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 12, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Gesture card */
+  .gesture-card {
+    background: var(--surface);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 20px;
+    padding: 32px 24px 24px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    transform: translateY(18px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 60px rgba(0,229,160,0.08), 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .overlay.visible .gesture-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .gesture-glow {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 120px;
+    background: radial-gradient(ellipse, rgba(0,229,160,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .gesture-icon {
+    font-size: 36px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .gesture-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .gesture-message {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.5;
+    letter-spacing: -0.3px;
+    text-align: center;
+    padding-bottom: 4px;
+  }
+
+  .gesture-message .name {
+    color: var(--accent);
+  }
+
+  .gesture-body {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .gesture-sig {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .gesture-sig span { color: var(--accent); }
+
+  .btn-finish {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #050709;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .btn-finish:hover {
+    background: #00ffb3;
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  /* Drip animation on claim */
+  @keyframes drip {
+    0% { transform: scale(1); }
+    30% { transform: scale(0.94); }
+    60% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .btn-claim.dripping {
+    animation: drip 0.5s ease;
+  }
+
+  :root {
+  --primary: #58a6ff;
+  --bg-dark: #0d1117;
+  --text-muted: #8b949e;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary);
+}
+
+.message-display, .history-message {
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-label">Arbitrum Sepolia Testnet</div>
+    <h1>0x<span>Faucet</span></h1>
+    <div class="header-sub">0.005 ETH · Every 12 hours · No KYC</div>
+  </div>
+
+  <!-- Chain badge -->
+  <div class="chain-badge">
+    <div class="chain-dot"></div>
+    Chain ID: 421614
+  </div>
+
+  <!-- Add Network card -->
+  <div class="card" id="addNetCard">
+    <div class="card-label">// Network</div>
+
+    <div class="net-details">
+      <div class="net-detail-item">
+        <div class="nd-label">Network Name</div>
+        <div class="nd-value">Arbitrum Sepolia</div>
+      </div>
+      <div class="net-detail-item">
+        <div class="nd-label">Chain ID</div>
+        <div class="nd-value">421614</div>
+      </div>
+      <div class="net-detail-item">
+        <div class="nd-label">Currency</div>
+        <div class="nd-value">ETH</div>
+      </div>
+      <div class="net-detail-item">
+        <div class="nd-label">Explorer</div>
+        <div class="nd-value">sepolia.arbiscan.io</div>
+      </div>
+      <div class="net-detail-item full">
+        <div class="nd-label">RPC URL</div>
+        <div class="nd-value">sepolia-rollup.arbitrum.io/rpc</div>
+      </div>
+    </div>
+
+    <button class="btn btn-addnet" id="addNetBtn">
+      <span class="net-icon">＋</span> Add to MetaMask
+    </button>
+    <div class="status-box" id="netStatusBox">
+      <div class="status-title" id="netStatusTitle"></div>
+      <div class="status-body" id="netStatusBody"></div>
+    </div>
+  </div>
+
+  <!-- Wrong network warning -->
+  <div class="wrong-net" id="wrongNet">
+    ⚠ Switch to Arbitrum Sepolia (421614)
+  </div>
+
+  <!-- Connect card -->
+  <div class="card" id="connectCard">
+    <div class="card-label">// Wallet</div>
+    <p style="font-size:13px; color:var(--muted); line-height:1.6;">
+      Connect your wallet to claim testnet ETH. Make sure you're on Arbitrum Sepolia.
+    </p>
+    <button class="btn btn-connect" id="connectBtn">Connect Wallet</button>
+  </div>
+
+  <!-- Claim card (hidden until connected) -->
+  <div class="card" id="claimCard" style="display:none;">
+    <div class="card-label">// Wallet</div>
+    <div class="address-box">
+      <div class="address-dot"></div>
+      <div class="address-text" id="addressDisplay">–</div>
+    </div>
+
+    <div class="balance-grid">
+      <div class="balance-box">
+        <div class="label">Your Balance</div>
+        <div class="value" id="userBalance">–</div>
+        <div class="unit">ETH (Sepolia)</div>
+      </div>
+      <div class="balance-box">
+        <div class="label">Faucet Reserve</div>
+        <div class="value accent" id="faucetBalance">–</div>
+        <div class="unit">ETH available</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="card-label">// Claim</div>
+
+    <div class="claim-amount">
+      <div class="eth">0.0025</div>
+      <div class="sub">ETH per claim<br>12hr cooldown</div>
+    </div>
+
+    <!-- Verify row -->
+    <div class="verify-row" id="verifyRow" style="display:none;">
+      <span class="verify-icon">✔</span>
+      <span id="verifyText">Last tx verified on-chain</span>
+    </div>
+
+    <!-- Explorer link — shown after connect -->
+    <a class="btn-explorer" id="explorerLink" href="#" target="_blank" style="display:none;">
+      ↗ View Wallet on Arbiscan
+    </a>
+
+    <button class="btn btn-claim" id="claimBtn">Claim ETH</button>
+
+  </div>
+
+  <!-- Status box -->
+  <div class="status-box" id="statusBox">
+    <div class="status-title" id="statusTitle"></div>
+    <div class="status-body" id="statusBody"></div>
+    <a class="tx-link" id="txLink" href="#" target="_blank" style="display:none;"></a>
+  </div>
+
+  <!-- Cooldown timer -->
+  <div class="timer-box" id="timerBox">
+    <div class="timer-label">// Next Claim In</div>
+    <div class="timer-display" id="timerDisplay">12:00:00</div>
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timerBar" style="width:100%;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built by 0xTimberzx · Arbitrum Sepolia · ethers.js v5
+  </div>
+
+</div>
+
+<!-- Gesture popup -->
+<div class="overlay" id="gestureOverlay">
+  <div class="gesture-card" id="gestureCard">
+    <div class="gesture-glow"></div>
+    <div class="gesture-icon">⬡</div>
+    <div class="gesture-title">// Claim Successful</div>
+    <div class="gesture-message">
+      Thanks for using 0xFaucet, <span class="name" id="gestureName">Nova</span>.
+    </div>
+    <div class="gesture-body">
+      Your 0.0025 ETH is on its way.<br>
+      Come back in 12 hours —<br>we'll keep the lights on.
+    </div>
+    <div class="gesture-sig">— <span>0xTimberzx</span></div>
+    <button class="btn-finish" id="finishBtn">Done</button>
+  </div>
+</div>
+
+<script>window.DEBUGHUB_CONFIG = { appName: "Faucet" };</script>
+<script src="https://0xtimberzx.github.io/MyDapp/debughub/debugger.js"></script>
+<script>
+  // Fallback: if the SDK failed to load (wrong path, network issue, etc),
+  // these no-op functions prevent the app from breaking.
+  if (!window.DebugHub) {
+    window.DebugHub = {
+      startSession: function () {},
+      endSession: function () {},
+      logCheckpoint: function () {},
+      logError: function () {},
+      logPerf: function () {},
+      logSecurity: function () {}
+    };
+    console.warn("⚠ DebugHub SDK did not load — running without telemetry.");
+  }
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  // ── CONFIG ──────────────────────────────────────────────
+  const VAULT_ADDRESS = "0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA";
+  const RPC_URL       = "https://sepolia-rollup.arbitrum.io/rpc";
+  const CHAIN_ID      = 421614;
+  const COOLDOWN_MS   = 12 * 60 * 60 * 1000; // mirrors contract cooldown
+  const EXPLORER      = "https://sepolia.arbiscan.io/tx/";
+
+  // Minimal ABI — only what the frontend needs
+  const VAULT_ABI = [
+    "function claim() external",
+    "function claimAmount() view returns (uint256)",
+    "function nextClaimTime(address) view returns (uint256)",
+    "function getBalance() view returns (uint256)"
+  ];
+  // ────────────────────────────────────────────────────────
+
+  let provider, signer, userAddress;
+  let timerInterval = null;
+
+  const $ = id => document.getElementById(id);
+
+  // ── NAMES ────────────────────────────────────────────────
+  const NAMES = [
+    // Classic
+    "James","Eleanor","Marcus","Sofia","Henry","Clara","Arthur","Diana",
+    "Edward","Florence","George","Harriet","Isaac","Josephine","Leonard",
+    "Margaret","Nathan","Olivia","Philip","Rosalind","Samuel","Theresa",
+    "Victor","Winifred","Albert","Beatrice","Cecil","Dorothy","Ernest",
+    "Frances","Gilbert","Helena","Julia","Kenneth","Louisa","Milton",
+    "Nora","Oscar","Prudence","Raymond","Sylvia","Thomas","Ursula",
+    "Vincent","Walter","Agnes","Bernard","Catherine","Douglas","Edith",
+    "Frederick","Grace","Howard","Irene","Jerome","Katherine","Lawrence",
+    "Mabel","Norman","Octavia","Percy","Roland","Stella","Theodore",
+    "Una","Vivian","Wilfred","Yvonne","Zachary","Adelaide","Basil",
+    "Constance","Desmond","Eugenia","Felix","Gertrude","Herbert","Isabella",
+    "Jasper","Leonora","Maxwell","Natalie","Orlando","Penelope","Reginald",
+    "Serena","Timothy","Valentine","Wesley","Arabella","Bruno","Cecilia",
+
+"Edmund","Emmeline","Ferdinand","Gwendolyn","Horatio","Imogen","Julian",
+    "Lavinia","Narcissa","Portia","Quentin","Rowena","Sebastian","Tamara",
+    "Veronica","Winston","Aldous","Blanche","Cornelius","Delphine","Gideon",
+    "Isolde","Leontine","Matthias","Oberon","Perdita","Raffael","Sybil",
+    "Thaddeus","Valentina","Warren","Alaric","Benedict","Christabel",
+    "Dorian","Evangeline","Florian","Griselda","Hadrian","Isadora","Leopold",  
+
+"Algernon","Brunella","Casimir","Dorothea","Everett","Galadriel",
+    "Hieronymus","Ingrid","Jonquil","Lysander","Millicent","Nerissa",
+    "Ophelia","Peregrine","Quintessa","Roderick","Sophronia","Tancred",
+    "Uriah","Venetia","Whitmore","Ximena","Zenobia","Archibald","Clementine",
+    "Dashiell","Elowen","Godwin","Hartley","Isidore","Jemima","Kingsley",
+    "Lancelot","Magdalene","Nicodemus","Oswald","Prunella","Remington",
+    "Tallulah","Ulric","Wilhelmina","Ambrose","Cordelia","Drummond",
+    "Elspeth","Godfrey","Hannelore","Iolanthe","Jocasta","Lysandra",
+    "Mortimer","Niamh","Oleander","Ptolemy","Rosamund","Silvester",
+    "Tiberius","Ursule","Warwick","Xanthe","Yaroslav","Zebediah",
+    // Scientists & Inventors
+    "Nikola","Albert","Isaac","Marie","Charles","Ada","Alan","Galileo", 
+    "Archimedes","Copernicus","Kepler","Darwin","Faraday","Mendel","Pasteur",
+    "Curie","Tesla","Edison","Newton","Bohr","Planck","Heisenberg","Feynman",
+    "Oppenheimer","Hawking","Turing","Lovelace","Babbage","Celsius","Kelvin",
+    "Ampere","Volta","Watt","Hertz","Pascal","Laplace","Gauss","Euler",
+    "Leibniz","Descartes","Pythagoras","Euclid","Archimedes","Fibonacci",
+    "Avogadro","Dalton","Lavoisier","Mendeleev","Rutherford","Thomson",
+    "Herschel","Hubble","Sagan","Hoyle","Eddington","Chandrasekhar",
+    "Ramanujan","Fermat","Cauchy","Riemann","Hilbert","Poincare","Noether",
+
+    "Boltzmann","Maxwell","Lorentz","Dirac","Schrodinger","Pauli","Born",
+    "Crick","Watson","Franklin","Pauling","Boyle","Hooke","Lister","Fleming",
+    "Jenner","Harvey","Vesalius","Hippocrates","Galen","Avicenna","Linnaeus",
+    "Lamarck","Huxley","Lyell","Wegener","Humboldt","Buffon","Cuvier",
+    "Marconi","Bell","Morse","Baird","Berners","Lovelace","Hopper","Knuth",
+    // Artists & Writers
+    "Leonardo","Michelangelo","Raphael","Caravaggio","Rembrandt","Vermeer",
+    "Monet","Renoir","Degas","Cezanne","Matisse","Picasso","Dali","Klimt",
+    "Kandinsky","Mondrian","Warhol","Basquiat","Banksy","Frida","Georgia",
+    "Toulouse","Gauguin","Seurat","Manet","Delacroix","Ingres","Courbet",
+    "Botticelli","Donatello","Titian","Tintoretto","Velazquez","Goya",
+    "Turner","Constable","Blake","Hogarth","Reynolds","Gainsborough",
+    "Homer","Virgil","Dante","Chaucer","Shakespeare","Cervantes","Moliere",
+    "Voltaire","Rousseau","Goethe","Schiller","Pushkin","Tolstoy","Dostoevsky",
+    "Chekhov","Turgenev","Gogol","Balzac","Flaubert","Zola","Hugo","Dumas",
+
+    "Stendhal","Proust","Baudelaire","Rimbaud","Verlaine","Mallarme",
+    "Dickens","Austen","Bronte","Hardy","Eliot","Thackeray","Trollope",
+    "Woolf","Joyce","Beckett","Yeats","Keats","Shelley","Byron","Coleridge",
+    "Wordsworth","Blake","Milton","Donne","Marlowe","Chaucer","Spenser",
+    "Twain","Whitman","Emerson","Thoreau","Poe","Hawthorne","Melville",
+    "Hemingway","Fitzgerald","Faulkner","Steinbeck","Salinger","Kerouac",
+    "Plath","Hughes","Ginsberg","Eliot","Pound","Frost","Dickinson","Longfellow",
+    "Borges","Neruda","Marquez","Lorca","Paz","Fuentes","Cortazar","Vargas",
+    "Kafka","Rilke","Mann","Hesse","Zweig","Musil","Schnitzler","Hofmannsthal",
+    "Ibsen","Strindberg","Hamsun","Lagerlof","Undset","Nexo","Andersen",
+    "Tolstoy","Gorky","Bulgakov","Pasternak","Akhmatova","Tsvetaeva","Mandelstam"
+  ];
+
+  
+    function pickName() {
+    return NAMES[Math.floor(Math.random() * NAMES.length)];
+  }
+
+  // ── GESTURE POPUP ────────────────────────────────────────
+  function showGesture() {
+    $("gestureName").textContent = pickName();
+    $("gestureOverlay").classList.add("visible");
+  }
+
+  function hideGesture() {
+    $("gestureOverlay").classList.remove("visible");
+  }
+
+  const finishBtn = $("finishBtn");
+  if (finishBtn) finishBtn.addEventListener("click", hideGesture);
+
+  const gestureOverlay = $("gestureOverlay");
+  if (gestureOverlay) {
+    gestureOverlay.addEventListener("click", function(e) {
+      if (e.target === gestureOverlay) hideGesture();
+    });
+  }
+
+  // ── STORAGE HELPERS ─────────────────────────────────────
+  function getCooldownKey(addr) {
+  return `faucet_cooldown_${addr.toLowerCase()}`;
+}
+    function getLastClaim(addr) {
+    const val = localStorage.getItem(getCooldownKey(addr));
+    return val ? parseInt(val, 10) : 0;
+  }
+
+  function setLastClaim(addr) {
+    localStorage.setItem(getCooldownKey(addr), Date.now().toString());
+  }
+
+  function msUntilNextClaim(addr) {
+    const last = getLastClaim(addr);
+    if (!last) return 0;
+    const elapsed = Date.now() - last;
+    return Math.max(0, COOLDOWN_MS - elapsed);
+  }
+
+  // ── FORMAT HELPERS ───────────────────────────────────────
+  function fmtEth(wei) {
+    return parseFloat(ethers.utils.formatEther(wei)).toFixed(4);
+  }
+
+  function fmtAddr(addr) {
+    return addr.slice(0, 6) + "···" + addr.slice(-4);
+  }
+    function fmtTime(ms) {
+    const s  = Math.floor(ms / 1000);
+    const h  = Math.floor(s / 3600);
+    const m  = Math.floor((s % 3600) / 60);
+    const sc = s % 60;
+    return [h, m, sc].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  // ── UI HELPERS ───────────────────────────────────────────
+  function showStatus(type, title, body, txHash) {
+    const box = $("statusBox");
+    box.className = "status-box " + type;
+    $("statusTitle").textContent = title;
+    $("statusBody").textContent = body;
+    const link = $("txLink");
+    if (txHash) {
+      link.href = EXPLORER + txHash;
+      link.textContent = "View on Arbiscan →";
+      link.style.display = "block";
+    } else {
+      link.style.display = "none";
+    }
+  }
+function clearStatus() {
+    $("statusBox").className = "status-box";
+    $("txLink").style.display = "none";
+  }
+
+  function startTimer(ms) {
+    const total = COOLDOWN_MS;
+    $("timerBox").classList.add("visible");
+    $("claimBtn").disabled = true;
+    $("claimBtn").textContent = "Cooldown Active";
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    function tick() {
+      const remaining = msUntilNextClaim(userAddress);
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        $("timerBox").classList.remove("visible");
+        $("claimBtn").disabled = false;
+        $("claimBtn").textContent = "Claim ETH";
+        $("timerDisplay").textContent = "00:00:00";
+        $("timerBar").style.width = "0%";
+        return;
+      }
+      $("timerDisplay").textContent = fmtTime(remaining);
+      const pct = (remaining / total) * 100;
+      $("timerBar").style.width = pct + "%";
+    }
+
+tick();
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  // ── BALANCES ─────────────────────────────────────────────
+  async function refreshBalances() {
+    try {
+      const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+      const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
+      const [userBal, vaultBal] = await Promise.all([
+        staticProvider.getBalance(userAddress),
+        vault.getBalance()
+      ]);
+      $("userBalance").textContent = fmtEth(userBal);
+      $("faucetBalance").textContent = fmtEth(vaultBal);
+    } catch (e) {
+      $("userBalance").textContent = "–";
+      $("faucetBalance").textContent = "–";
+    }
+  }
+
+  // ── VERIFY TX ────────────────────────────────────────────
+  async function verifyTx(txHash) {
+    try {const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+      const receipt = await staticProvider.getTransactionReceipt(txHash);
+      if (receipt && receipt.status === 1) {
+        $("verifyRow").style.display = "flex";
+        $("verifyText").textContent =
+  `Verified: ${fmtAddr(txHash)} · Block ${receipt.blockNumber}`;
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // ── ADD NETWORK ──────────────────────────────────────────
+  const addNetBtn = $("addNetBtn");
+  if (addNetBtn) {
+    addNetBtn.addEventListener("click", async () => {
+      if (!window.ethereum) {
+        $("netStatusBox").className = "status-box error";
+        $("netStatusTitle").textContent = "No Wallet Found";
+        $("netStatusBody").textContent = "MetaMask or Brave Wallet not detected in this browser.";
+        return;
+      }
+        addNetBtn.disabled = true;
+      addNetBtn.textContent = "Adding…";
+      $("netStatusBox").className = "status-box";
+
+      try {
+        // First try switching — if network already exists this is enough
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x" + CHAIN_ID.toString(16) }]
+          });
+          $("netStatusBox").className = "status-box success";
+          $("netStatusTitle").textContent = "✔ Switched!";
+          $("netStatusBody").textContent = "Arbitrum Sepolia is now your active network.";
+          addNetBtn.textContent = "✔ Network Active";
+          $("wrongNet").classList.remove("visible");
+          return;
+        } catch (switchErr) {
+          // Error code 4902 = network not in wallet yet — fall through to add
+          if (switchErr.code !== 4902 && switchErr.code !== -32603) throw switchErr;
+        }
+
+          // Network not found — add it
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: "0x" + CHAIN_ID.toString(16),
+            chainName: "Arbitrum Sepolia",
+            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+            rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+            blockExplorerUrls: ["https://sepolia.arbiscan.io"]
+          }]
+        });
+
+        $("netStatusBox").className = "status-box success";
+        $("netStatusTitle").textContent = "✔ Added!";
+        $("netStatusBody").textContent = "Arbitrum Sepolia added and set as active network.";
+        addNetBtn.textContent = "✔ Network Added";
+        $("wrongNet").classList.remove("visible");
+
+      } catch (err) {
+        addNetBtn.disabled = false;
+        addNetBtn.innerHTML = '<span class="net-icon">＋</span> Add to MetaMask';
+        if (err.code === 4001) {
+
+$("netStatusBox").className = "status-box error";
+          $("netStatusTitle").textContent = "Rejected";
+          $("netStatusBody").textContent = "You declined the request in your wallet.";
+        } else {
+          $("netStatusBox").className = "status-box error";
+          $("netStatusTitle").textContent = "Failed";
+          $("netStatusBody").textContent = err.message || "Unknown error.";
+        }
+      }
+    });
+  }
+
+  // Detect correct provider
+async function getProvider() {
+    if (typeof window.ethereum === "undefined") {
+        throw new Error("No wallet found");
+    }
+
+    // Handle multiple injected providers
+    if (window.ethereum.providers) {
+        // Multiple wallets installed
+        const metamask = window.ethereum.providers.find(
+            p => p.isMetaMask && !p.isBraveWallet
+        );
+        const brave = window.ethereum.providers.find(
+            p => p.isBraveWallet
+        );
+        // Prefer MetaMask, fall back to Brave
+        return new ethers.providers.Web3Provider(
+            metamask || brave || window.ethereum
+        );
+    }
+
+    // Single provider
+    return new ethers.providers.Web3Provider(window.ethereum);
+}
+
+  // ── CONNECT ──────────────────────────────────────────────
+  const connectBtn = $("connectBtn");
+  if (connectBtn) {
+    connectBtn.addEventListener("click", async () => {
+      if (!window.ethereum) {
+        showStatus("error", "No Wallet", "MetaMask or Brave Wallet not detected.");
+        return;
+      }
+      try {
+connectBtn.textContent = "Connecting…";
+        connectBtn.disabled = true;
+        provider = await getProvider();
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        DebugHub.startSession();
+        DebugHub.logCheckpoint("Wallet Connected", "pass");
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== CHAIN_ID) {
+          DebugHub.logSecurity("Chain Check", "fail");
+          $("wrongNet").classList.add("visible");
+          connectBtn.textContent = "Connect Wallet";
+          connectBtn.disabled = false;
+
+          // Try to switch
+          try {
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x" + CHAIN_ID.toString(16) }]
+            });
+            DebugHub.logSecurity("Chain Check", "pass");
+            $("wrongNet").classList.remove("visible");
+            // Re-init after switch
+            provider = await getProvider();
+            signer = provider.getSigner();
+          } catch (switchErr) {
+            DebugHub.logError("switchChain", switchErr);
+            showStatus("error", "Wrong Network", "Please switch to Arbitrum Sepolia (421614).");
+
+            return;
+          }
+        } else {
+          DebugHub.logSecurity("Chain Check", "pass");
+        }
+
+        $("wrongNet").classList.remove("visible");
+        $("connectCard").style.display = "none";
+        $("claimCard").style.display = "flex";
+        $("addressDisplay").textContent = userAddress;
+
+        // Show explorer link for connected wallet
+        const explorerLink = $("explorerLink");
+        if (explorerLink) {
+          explorerLink.href =
+  `https://sepolia.arbiscan.io/address/${userAddress}`;
+          explorerLink.style.display = "flex";
+        }
+
+        await refreshBalances();
+
+        // Check cooldown — prefer on-chain value from vault
+        let remaining = 0;
+        try {
+          const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+          const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
+
+const nextTime = await vault.nextClaimTime(userAddress); // unix seconds
+          const nowSec = Math.floor(Date.now() / 1000);
+          remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
+        } catch {
+          remaining = msUntilNextClaim(userAddress); // fallback to localStorage
+        }
+ 
+        if (remaining > 0) {
+          startTimer(remaining);
+          showStatus(
+  "error",
+  "Cooldown Active",
+  `You claimed recently. Next claim available in ${fmtTime(remaining)}.`
+);
+        }
+ 
+      } catch (err) {
+        connectBtn.textContent = "Connect Wallet";
+        connectBtn.disabled = false;
+        showStatus("error", "Connection Failed", err.message || "Unknown error.");
+      }
+    });
+  }
+ 
+  // ── CLAIM ────────────────────────────────────────────────
+  const claimBtn = $("claimBtn");
+
+if (claimBtn) {
+    claimBtn.addEventListener("click", async () => {
+      if (!userAddress || !signer) return;
+
+      // Check vault address configured
+      if (VAULT_ADDRESS.startsWith("REPLACE")) {
+        showStatus("error", "Not Configured", "FaucetVault contract address not set in app.js.");
+        return;
+      }
+
+      // Check on-chain cooldown first
+      try {
+        const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        const vaultRead = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, staticProvider);
+        const nextTime = await vaultRead.nextClaimTime(userAddress);
+        const nowSec = Math.floor(Date.now() / 1000);
+        const remaining = Math.max(0, (nextTime.toNumber() - nowSec) * 1000);
+        if (remaining > 0) {
+          startTimer(remaining);
+          showStatus(
+  "error",
+  "Cooldown Active",
+  `Wait ${fmtTime(remaining)} before claiming again.`
+);
+          return;
+        }
+      } catch (e) {
+        // If read fails, let the tx attempt and the contract will revert with its own error
+      }
+
+      claimBtn.classList.add("btn-loading");
+      claimBtn.classList.remove("btn-claim");
+      claimBtn.textContent = "Waiting for wallet…";
+      claimBtn.disabled = true;
+      clearStatus();
+      $("verifyRow").style.display = "none";
+
+      try {
+        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
+
+        // Estimate gas with 50% buffer (your standard pattern)
+        const __gasStart = Date.now();
+        const gasEstimate = await vault.estimateGas.claim();
+        const gasWithBuffer = gasEstimate.mul(150).div(100);
+        DebugHub.logPerf("gasEstimate", Date.now() - __gasStart);
+
+        // Fetch current fee data with 130% buffer (MetaMask mobile pattern)
+        const feeData = await provider.getFeeData();
+        const maxFeePerGas = feeData.maxFeePerGas.mul(130).div(100);
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas.mul(130).div(100);
+
+        claimBtn.textContent = "Sending…";
+
+        DebugHub.logCheckpoint("Claim Requested", "pass");
+        const tx = await vault.claim({
+          gasLimit: gasWithBuffer,
+          maxFeePerGas: maxFeePerGas,
+          maxPriorityFeePerGas: maxPriorityFeePerGas
+        });
+        DebugHub.logCheckpoint("Transaction Submitted", "pass");
+    claimBtn.textContent = "Confirming…";
+        showStatus(
+  "success",
+  "Tx Submitted",
+  `Hash: ${fmtAddr(tx.hash)}`,
+  tx.hash
+);
+
+        await tx.wait(1);
+        DebugHub.logCheckpoint("Transaction Confirmed", "pass");
+
+        // Verify on-chain
+        await verifyTx(tx.hash);
+
+        setLastClaim(userAddress); // keep localStorage in sync as backup
+        await refreshBalances();
+
+        claimBtn.classList.remove("btn-loading");
+        claimBtn.classList.add("btn-claim");
+        claimBtn.classList.add("dripping");
+        setTimeout(() => claimBtn.classList.remove("dripping"), 600);
+
+        showStatus(
+  "success",
+  "✔ Claimed!",
+  `0.005 ETH sent to ${fmtAddr(userAddress)}`,
+  tx.hash
+);
+        startTimer(COOLDOWN_MS);
+        showGesture();
+
+      } catch (err) {
+        DebugHub.logError("claim", err);
+        DebugHub.logCheckpoint("Transaction Confirmed", "fail");
+        claimBtn.classList.remove("btn-loading");
+        claimBtn.classList.add("btn-claim");
+        claimBtn.textContent = "Claim ETH";
+        claimBtn.disabled = false;  
+      
+      // Surface readable revert reason if contract throws
+        const msg = err?.error?.message || err?.reason || err?.message || "Unknown error.";
+        const clean = msg.replace("execution reverted: ", "");
+        showStatus("error", "Claim Failed", clean);
+
+        if (clean.toLowerCase().includes("cooldown") || clean.toLowerCase().includes("wait")) {
+          startTimer(COOLDOWN_MS);
+        }
+      }
+    });
+}
+// ── ACCOUNT CHANGE LISTENER ──────────────────────────────
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", async (accounts) => {
+    if (!accounts.length) {
+      location.reload();
+      return;
+    }
+
+    provider = await getProvider();
+    signer = provider.getSigner();
+    userAddress = accounts[0];
+
+    $("addressDisplay").textContent = userAddress;
+
+    clearStatus();
+
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+
+    $("timerBox").classList.remove("visible");
+    $("verifyRow").style.display = "none";
+
+    await refreshBalances();
+
+    // Re-check cooldown for the new wallet
+    try {
+      const staticProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+      const vault = new ethers.Contract(
+        VAULT_ADDRESS,
+        VAULT_ABI,
+        staticProvider
+      );
+
+      const nextTime = await vault.nextClaimTime(userAddress);
+      const nowSec = Math.floor(Date.now() / 1000);
+      const remaining = Math.max(
+        0,
+        (nextTime.toNumber() - nowSec) * 1000
+      );
+
+      if (remaining > 0) {
+        startTimer(remaining);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
+
+});
+  
+</script>
+</body>
+</html>
+ 
