@@ -1,4 +1,4 @@
-# 🌐 DAppMe (HelloWorld) — Decentralized Message Board
+# 🌐 MessageBoard (HelloWorld) — Decentralized Message Board
 
 A fully on-chain decentralized message board built on Arbitrum Sepolia
 testnet. Users connect their wallet, compile string segments into a final
@@ -28,6 +28,7 @@ and view the complete transaction history — all from a mobile browser.
 - Filter by Wallet — Search history by any full wallet address
 - Privacy Protected — All addresses shown in abbreviated form only
 - Disconnect — Cleanly resets all wallet and compiler state
+- DebugHub Integration — Sessions, checkpoints, and errors logged to the shared ecosystem dashboard
 
 ---
 
@@ -41,6 +42,7 @@ and view the complete transaction history — all from a mobile browser.
 | Frontend | HTML, CSS, JavaScript |
 | Font | Inter (Google Fonts) |
 | Wallet Connection | ethers.js v5.7.2 |
+| Telemetry | DebugHub SDK (debugger.js) |
 | Hosting | GitHub Pages |
 | Verification | Sourcify (Exact Match) |
 | Code Editor | Buffer Editor (iPhone) |
@@ -76,32 +78,40 @@ and view the complete transaction history — all from a mobile browser.
 | Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
 | Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
 
-### Faucet
-|---|---|
+### Faucet (FaucetVault)
 | Detail | Value |
-| Address | 0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA |
-| Eth Send per Claim | 0.005 ETH ( every 12 hours ) |
-| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA) |
-| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA) |
+|---|---|
+| Address | 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF |
+| Eth Send per Claim | 0.0025 ETH (every 12 hours) |
+| Compiler | solc 0.8.20, Optimizer OFF |
+| Arbiscan | [View on Arbiscan](https://sepolia.arbiscan.io/address/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
+| Sourcify | [View on Sourcify](https://repo.sourcify.dev/421614/0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF) |
+
 ---
 
-## 🔄 How The String Compiler WorksUser approves DAPP tokens for StringCompiler
-↓
+## 🔄 How The String Compiler Works
+
+```
+User approves DAPP tokens for StringCompiler
+        ↓
 Types first segment (max 80 chars) → Compile
-→ FREE — saved on-chain
-↓
+        → FREE — saved on-chain
+        ↓
 Types additional segments → Compile
-→ 10 DAPP charged per segment at publish
-↓
+        → 10 DAPP charged per segment at publish
+        ↓
 Reviews compiled preview and token cost
-↓
+        ↓
 Taps Publish Message
-→ Total DAPP cost charged at once
-→ Combined string pushed to HelloWorld
-→ Compiler state resets automatically
-↓
+        → Total DAPP cost charged at once
+        → Combined string pushed to HelloWorld
+        → Compiler state resets automatically
+        ↓
 Message appears on-chain permanently
-History updates with cost and sender---
+History updates with cost and sender
+```
+
+---
 
 ## ⛽ Compile Pricing
 
@@ -114,70 +124,64 @@ History updates with cost and sender---
 | N | (N-1) × 10 DAPP |
 
 ---
-## 💧Faucet Contract
-FaucetVault — 0x448f7bAeB5a93249215fd6a2C2e8ED0D287d8BBF
-Compiler: solc 0.8.20 | Optimizer: OFF
-Deployed: [06/05/06]
-Verified: Sourcify ✔
 
-## 🗂️ Project Structuremy-dapp/
-├── index.html           # Frontend structure and layout
-├── style.css            # Styling and responsive design
-├── app.js               # Blockchain logic and wallet connection
-├── HelloWorld.sol       # Message storage contract
-├── DAppToken.sol        # DAPP ERC-20 token contract
-├── StringCompiler.sol   # String compilation and token charging
-├── notes.md             # Project notes and contract history
-├── README.md            # This File---
-└── debughub              
-    └── app.js            # Customized Console Log for Ecosystem 
-    └── index.html        # 
-    └── gate.js           # Owner protection 
-    └── style.css         # 
-    └── sdk/debugger.js   #
+## 📊 Contract Architecture
 
-## 📊 Contract ArchitectureUser Wallet
-↓ approve()
+```
+User Wallet
+   ↓ approve()
 DAppToken (DAPP ERC-20)
-↓ allowance granted to StringCompiler
+   ↓ allowance granted to StringCompiler
 StringCompiler
-↑ compileString() — free, stores segments on-chain
-↑ publishMessage() — charges DAPP, pushes to HelloWorld
-↓ updateMessage() — restricted by onlyCompiler modifier
+   ↑ compileString() — free, stores segments on-chain
+   ↑ publishMessage() — charges DAPP, pushes to HelloWorld
+   ↓ updateMessage() — restricted by onlyCompiler modifier
 HelloWorld
-↓ emits MessageUpdated event
+   ↓ emits MessageUpdated event
+
 Transaction History displayed in DApp
+```
+
 ---
 
 ## 🔒 Security Features
 
-- onlyCompiler modifier — HelloWorld only accepts updates from StringCompiler
-- immutable owner — Owner set once at deployment, cannot be changed
-- Zero address check — Prevents setting compiler to invalid address
-- CompilerUpdated event — Logs every compiler change on-chain
-- XSS Protection — All user messages sanitized before display
-- Input Validation — Segments limited to 80 characters
-- Wallet Checks — All functions verify wallet connection before executing
-- Network Switching — Auto-switches to Arbitrum Sepolia on connect
-- msg.sender — Used instead of tx.origin to prevent phishing attacks
-- Privacy — Wallet addresses displayed in abbreviated form only
-
-## Owner gate
-Hardcoded owner address in gate.js:
-0x42536623b503D4926DfAF6173B0357b7DfD19800
-Frontend-only gate. localStorage values are base64-encoded as a
-casual-snooping deterrent, not real security. Fine for a personal
-debug tool, not for anything guarding funds.
+- **onlyCompiler modifier** — HelloWorld only accepts updates from StringCompiler
+- **immutable owner** — Owner set once at deployment, cannot be changed
+- **Zero address check** — Prevents setting compiler to invalid address
+- **CompilerUpdated event** — Logs every compiler change on-chain
+- **XSS Protection** — All user messages sanitized before display
+- **Input Validation** — Segments limited to 80 characters
+- **Wallet Checks** — All functions verify wallet connection before executing
+- **Network Switching** — Auto-switches to Arbitrum Sepolia on connect, logged as a DebugHub security check
+- **msg.sender** — Used instead of tx.origin to prevent phishing attacks
+- **Privacy** — Wallet addresses displayed in abbreviated form only
 
 ---
 
-## ⛽ Gas Handling
+## ⛽ Gas & Transaction Handling
 
-- Automatically estimates gas for every transaction
-- Adds 50% buffer to prevent out-of-gas errors
-- Fetches current network fee data dynamically
-- Retry logic with exponential backoff handles RPC errors
+- Automatically estimates gas for every transaction, with a 50% buffer on `gasLimit`
+- Fetches current network fee data via `getFeeData()`, with a **130% buffer** on `maxFeePerGas` and `maxPriorityFeePerGas` (prevents "max fee per gas less than block base fee" on Arbitrum Sepolia)
+- Explicit nonce via `getTransactionCount(address, "pending")` on every write, preventing `NONCE_EXPIRED` after rapid sequential transactions
 - Compatible with MetaMask and Brave Wallet fee structures
+
+---
+
+## 🛰️ DebugHub Integration
+
+This DApp reports telemetry to **DebugHub**, the shared diagnostics
+dashboard for the 0xTimberzx ecosystem.
+
+- `appName: "MessageBoard"` — events stored under `MessageBoard_sessions`
+- Session starts on wallet connect, ends on disconnect / account switch / page unload
+- **Checkpoints logged:** Wallet Connected, Approve (Requested/Submitted/Confirmed), Compile (Requested/Submitted/Confirmed), Publish (Requested/Submitted/Confirmed)
+- **Security checks logged:** Chain Check, Contract Check
+- **Performance timings logged:** gas estimation for approve, compile, and publish
+- If the SDK fails to load, a no-op fallback stub keeps MessageBoard fully functional — DebugHub never breaks the app
+
+View live diagnostics at:
+👉 [DebugHub Dashboard](https://0xtimberzx.github.io/MyDapp/debughub/)
 
 ---
 
@@ -192,15 +196,41 @@ debug tool, not for anything guarding funds.
 
 ## 🚀 How To Use
 
-1. Open the [Live DApp](https://0xtimberzx.github.io/MyDapp/) in
-   MetaMask or Brave browser
-2. Tap Connect Wallet and approve the connection
-3. Tap Approve DAPP Tokens to enable the compiler
-4. Type your first segment and tap Compile Segment — free!
+1. Open the [Live DApp](https://0xtimberzx.github.io/MyDapp/) in MetaMask or Brave browser
+2. Tap **Connect Wallet** and approve the connection
+3. Tap **Approve DAPP Tokens** to enable the compiler
+4. Type your first segment and tap **Compile Segment** — free!
 5. Add more segments as needed — cost shown in preview
 6. Review the compiled string and total DAPP cost
-7. Tap Publish to Blockchain and confirm in wallet
+7. Tap **Publish to Blockchain** and confirm in wallet
 8. Watch your message and transaction history update automatically
+
+---
+
+## 🗂️ Project Structure
+
+```
+0xtimberzx.github.io/MyDapp/
+├── index.html           # Frontend structure and layout
+├── style.css            # Styling and responsive design
+├── app.js               # Blockchain logic and wallet connection
+├── HelloWorld.sol        # Message storage contract
+├── DAppToken.sol         # DAPP ERC-20 token contract
+├── StringCompiler.sol    # String compilation and token charging
+├── notes.md              # Project notes and contract history
+├── README.md             # This file
+│
+├── faucet/               # 0xFaucet
+├── blockpot/             # BlockpotDAO (vaults + stakes + timer, React)
+│
+└── debughub/             # Shared ecosystem diagnostics
+    ├── index.html
+    ├── style.css
+    ├── gate.js            # Owner wallet gate
+    ├── app.js             # Dashboard logic (tabs, export)
+    └── sdk/
+        └── debugger.js    # Telemetry SDK loaded by all DApps
+```
 
 ---
 
@@ -225,12 +255,14 @@ This DApp was built entirely from an iPhone using:
 | Resource | URL |
 |---|---|
 | Live DApp | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/) |
+| DebugHub Dashboard | [0xtimberzx.github.io/MyDapp/debughub](https://0xtimberzx.github.io/MyDapp/debughub/) |
+| Faucet | [0xtimberzx.github.io/MyDapp/faucet](https://0xtimberzx.github.io/MyDapp/faucet/) |
+| BlockpotDAO | [0xtimberzx.github.io/MyDapp/blockpot](https://0xtimberzx.github.io/MyDapp/blockpot/) |
 | GitHub Repo | [github.com/0xTimberzx/mydapp](https://github.com/0xTimberzx/mydapp) |
-| Gist | [View Gist](https://gist.github.com/0xTimberZx/c7f0b7d3d7a4938bd983dd49a81c3ce4) |
 | HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
-| StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x63516F99D6e82cC8372198b8248f3B3aE001bfb6) |
-| DAPP Token on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x51B4dfB1A6ECABBc6542FDC4e8AC0085026d6A63) |
-| Faucet Webpage | [https://0xtimberzx.github.io/MyDapp/faucet]
+| StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
+| DAPP Token on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04) |
+
 ---
 
 ## 📄 License
