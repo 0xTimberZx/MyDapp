@@ -257,7 +257,7 @@ This DApp was built entirely from an iPhone using:
 | Live DApp | [0xtimberzx.github.io/MyDapp](https://0xtimberzx.github.io/MyDapp/) |
 | DebugHub Dashboard | [0xtimberzx.github.io/MyDapp/debughub](https://0xtimberzx.github.io/MyDapp/debughub/) |
 | Faucet | [0xtimberzx.github.io/MyDapp/faucet](https://0xtimberzx.github.io/MyDapp/faucet/) |
-| BlockpotDAO | [0xtimberzx.github.io/MyDapp/blockpot](https://0xtimberzx.github.io/MyDapp/blockpot/) |
+| BlockpotDAO | [0xtimberzx.github.io/MyDapp/blockpotdao](https://0xtimberzx.github.io/MyDapp/blockpotdao/) |
 | GitHub Repo | [github.com/0xTimberzx/mydapp](https://github.com/0xTimberzx/mydapp) |
 | HelloWorld on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x4c8ded518b3de7d839d3a2756773b8028c5c74aa) |
 | StringCompiler on Arbiscan | [View Contract](https://sepolia.arbiscan.io/address/0x881A836D3d2cF955d9Bef9438b9e2bd610bcdAEe) |
