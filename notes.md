@@ -151,3 +151,8 @@ Add new codes here AND in app.js as they're encountered - this list
 should stay in sync with the live lookup table.
 
 ---
+
+
+Additional Faucet Links
+-https://www.alchemy.com/faucets/arbitrum-sepolia
+-https://faucets.chain.link/arbitrum-sepolia
