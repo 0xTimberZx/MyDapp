@@ -242,7 +242,13 @@
     "ProposalNotActive":    "Proposal is not in active voting state.",
     "ProposalNotPassed":    "Proposal has not passed — cannot execute.",
     "ExecutionWindowExpired": "Execution window has closed — proposal has expired.",
-    "WRONG_CHAIN":          "Wrong network — TimbSwap requires Arbitrum Sepolia (Chain ID: 421614). Switch in your wallet."
+    "WRONG_CHAIN":          "Wrong network — TimbSwap requires Arbitrum Sepolia (Chain ID: 421614). Switch in your wallet.",
+    // ── Liquidity ─────────────────────────────────────────────────────────────
+    "InsufficientAAmount":     "removeLiquidity: received less tokenA than amountAMin. Increase slippage tolerance or reduce the liquidity amount.",
+    "InsufficientBAmount":     "removeLiquidity: received less tokenB than amountBMin. Increase slippage tolerance or reduce the liquidity amount.",
+    // ── Governance ───────────────────────────────────────────────────────────
+    "InsufficientVotingPower": "No TIMBS deposited in governance contract. Call depositVotingPower() before attempting to vote.",
+    "QuorumNotReached":        "Proposal reached vote threshold but total participation was below the quorum requirement."
   };
 
   function explainError(evt) {
