@@ -73,7 +73,7 @@
       }
 
       if (evt.type === "error") {
-        s.lastCheckpoint = "Error: " + evt.function;
+        s.lastCheckpoint = "Error: " + (evt.functionName || evt.function || "unknown");
         s.lastStatus = "fail";
       }
     });
@@ -134,6 +134,7 @@
           '<div class="status-badge ' + cls + '">' + statusLabel(s) + "</div>" +
           "</div>" +
           '<div class="session-row"><span class="label">Wallet</span><span class="value">' + shortWallet(s.wallet) + "</span></div>" +
+          '<div class="session-row"><span class="label">Duration</span><span class="value">' + (s.ended && s.started ? Math.round((s.ended - s.started) / 1000) + "s" : "active") + "</span></div>" +
           '<div class="session-row"><span class="label">Last checkpoint</span><span class="value">' + (s.lastCheckpoint || "—") + "</span></div>" +
           '<div class="session-row"><span class="label">Last activity</span><span class="value">' + formatTime(s.lastTimestamp) + "</span></div>" +
           "</div>"
@@ -190,52 +191,58 @@
   // ---------- error code lookup ----------
 
   var ERROR_EXPLANATIONS = {
-    // ── Wallet / RPC ────────────────────────────────────────────────────────
+    // ── Wallet / RPC ─────────────────────────────────────────────────────────
     "-32002": "Wallet already has a pending request — open MetaMask/Brave and check for a waiting popup.",
     "-32603": "Internal JSON-RPC error — often a contract revert or bad call data. Check the contract state and parameters.",
     "4001":   "The wallet rejected the request — user tapped Cancel or denied the signature.",
-    "-32000": "Invalid input — often: (a) maxFeePerGas below the current base fee, (b) insufficient ETH for gas, or (c) bad transaction parameters. Apply the 130% fee buffer fix.",
+    "-32000": "Invalid input — often: (a) maxFeePerGas below base fee, (b) insufficient ETH for gas, or (c) bad tx parameters. Apply the 130% fee buffer fix.",
     "-32700": "Parse error — the RPC received malformed JSON. Usually a client-side serialisation bug.",
-    "-32601": "Method not found — the RPC node doesn't support this call. Try a different RPC endpoint.",
-    "-32003": "Transaction rejected by the node — nonce too low, or the transaction would fail on-chain. Fetch a fresh pending nonce.",
-    "-32005": "RPC rate limit exceeded — too many requests in a short window. Add a delay or switch RPC endpoints.",
-
+    "-32601": "Method not found — the RPC node does not support this call. Try a different RPC endpoint.",
+    "-32003": "Transaction rejected — nonce too low or tx would fail on-chain. Fetch a fresh pending nonce.",
+    "-32005": "RPC rate limit exceeded. Add a delay or switch RPC endpoints.",
+    "SERVER_ERROR_401": "RPC endpoint returned 401 Unauthorized — ARB_SEPOLIA_RPC secret is missing, expired, or API key is invalid.",
     // ── Transaction / Nonce ──────────────────────────────────────────────────
-    "NONCE_EXPIRED":      "Nonce too low — a previous transaction already used this nonce. Always fetch nonce via getTransactionCount(address, 'pending') on every write call.",
-    "REPLACEMENT_UNDERPRICED": "A pending transaction with the same nonce exists. Either wait for it to confirm or resend with higher gas.",
-    "UNPREDICTABLE_GAS_LIMIT": "Gas estimation failed — the transaction would revert on-chain. Check contract state, allowances, and input parameters.",
-    "CALL_EXCEPTION":     "Contract call reverted. Check: (1) token allowance, (2) entry cost values, (3) contract is not paused, (4) correct contract address in config.js.",
-    "INSUFFICIENT_FUNDS": "Wallet has insufficient ETH for gas. Top up from the 0xFaucet.",
-
+    "NONCE_EXPIRED":           "Nonce too low — always fetch via getTransactionCount(address, 'pending') on every write call.",
+    "REPLACEMENT_UNDERPRICED": "A pending tx with the same nonce exists. Wait for it to confirm or resend with higher gas.",
+    "UNPREDICTABLE_GAS_LIMIT": "Gas estimation failed — tx would revert. Check allowances, contract state, and input params.",
+    "CALL_EXCEPTION":          "Contract call reverted. Check: allowance, entry cost, contract not paused, correct address in config.js.",
+    "INSUFFICIENT_FUNDS":      "Wallet has insufficient ETH for gas. Top up from 0xFaucet.",
+    "NETWORK_ERROR":           "Lost connection to RPC node. Check internet connection and retry.",
+    "TIMEOUT":                 "RPC request timed out. Node may be congested — retry.",
     // ── TimbSwap: Swap ───────────────────────────────────────────────────────
-    "InsufficientOutputAmount": "Swap slippage exceeded — the price moved before your transaction confirmed. Increase slippage tolerance or retry.",
-    "ExcessiveInputAmount":     "Swap exact-out: required input exceeded your amountInMax. Increase slippage tolerance.",
-    "PairNotFound":             "No liquidity pair exists for this token combination. Check factory and token addresses.",
-    "RouterPaused":             "The TimbSwap Router is paused by the owner. No swaps possible until unpaused.",
-    "Expired":                  "Transaction deadline passed before it was mined. Increase the deadline or submit faster.",
-    "WethNotSet":               "WETH address not configured on the Router. Call router.setWeth().",
-
+    "InsufficientOutputAmount": "Swap slippage exceeded — price moved before tx confirmed. Increase slippage tolerance or retry.",
+    "ExcessiveInputAmount":     "Swap exact-out: required input exceeded amountInMax. Increase slippage tolerance.",
+    "PairNotFound":             "No liquidity pair exists for this token combination.",
+    "RouterPaused":             "TimbSwap Router is paused. No swaps until unpaused.",
+    "Expired":                  "Transaction deadline passed. Increase the deadline or submit faster.",
+    "WethNotSet":               "WETH address not configured on Router. Call router.setWeth().",
+    "RefundFailed":             "ETH refund after addLiquidityETH failed — recipient may be a contract rejecting ETH.",
+    "InsufficientLiquidity":    "Insufficient liquidity in the pool for this trade size.",
     // ── TimbSwap: Prize Game ─────────────────────────────────────────────────
-    "InvalidCharacter":         "Entry string contains an invalid character — only A-Z and 0-9 are allowed.",
-    "RepeatingCharacter":       "Entry string has a repeating character — all 6 characters must be unique.",
-    "ActiveEntryExists":        "You already have an active entry for this round. Use Replace Entry instead.",
-    "LockNotUnlocked":          "Lock duration has not elapsed yet. Check timeUntilUnlock() for remaining time.",
-    "NotLocker":                "Only the original locker can withdraw this lock.",
-    "ClaimWindowClosed":        "The claim window for this round has closed (2 rounds after last eligible round).",
-    "GameNotStarted":           "TimbPrize.startGame() has not been called yet. The prize game is not live.",
-    "SettlementPaused":         "Settlement is paused by the owner. Segments cannot advance.",
-    "NotSettler":               "Only the designated settler address can call settleSegment().",
-
+    "InvalidCharacter":     "Entry string has an invalid character — only A-Z and 0-9 allowed.",
+    "RepeatingCharacter":   "Entry string has a repeating character — all 6 must be unique.",
+    "ActiveEntryExists":    "You already have an active entry for this round. Use Replace Entry.",
+    "LockNotUnlocked":      "Lock duration has not elapsed. Check timeUntilUnlock() for remaining time.",
+    "NotLocker":            "Only the original locker can withdraw this lock.",
+    "ClaimWindowClosed":    "Claim window closed — 2 rounds after last eligible round.",
+    "GameNotStarted":       "TimbPrize.startGame() has not been called yet.",
+    "SettlementPaused":     "Settlement is paused by the owner.",
+    "NotSettler":           "Only the designated settler address can call settleSegment().",
+    "SegmentNotComplete":   "Segment interaction window has not elapsed yet. Settler called too early.",
+    "RoundNotSettled":      "Round has not been settled yet — no winner data available.",
+    "AlreadyClaimed":       "Winnings already claimed for this round.",
+    "NotAWinner":           "This wallet is not a documented winner for the requested round.",
     // ── TimbSwap: Staking / Farm ─────────────────────────────────────────────
-    "InsufficientStake":        "Unstake amount exceeds your staked balance.",
-    "NoPendingRewards":         "No rewards to claim — earned balance is zero.",
-    "LpTokenNotSet":            "LP token address not set on TimbFarm. Call farm.setLpToken().",
-    "LpTokenAlreadyLocked":     "LP token address is locked after the first stake and cannot be changed.",
-
-    // ── Network / Chain ──────────────────────────────────────────────────────
-    "NETWORK_ERROR":            "Lost connection to the RPC node. Check your internet connection and try again.",
-    "TIMEOUT":                  "RPC request timed out. The node may be congested — retry in a moment.",
-    "WRONG_CHAIN":              "Wrong network detected. TimbSwap runs on Arbitrum Sepolia (Chain ID: 421614). Switch networks in your wallet."
+    "LpTokenNotSet":        "LP token not set on TimbFarm. Call farm.setLpToken().",
+    "LpTokenAlreadyLocked": "LP token is locked after first stake and cannot be changed.",
+    // ── Governance ───────────────────────────────────────────────────────────
+    "BelowThreshold":       "TIMBS balance is below the proposal threshold required to create a proposal.",
+    "AlreadyVoted":         "This wallet has already voted on this proposal.",
+    "VotingPowerLocked":    "Voting power is locked — you have participated in an active or passed proposal.",
+    "ProposalNotActive":    "Proposal is not in active voting state.",
+    "ProposalNotPassed":    "Proposal has not passed — cannot execute.",
+    "ExecutionWindowExpired": "Execution window has closed — proposal has expired.",
+    "WRONG_CHAIN":          "Wrong network — TimbSwap requires Arbitrum Sepolia (Chain ID: 421614). Switch in your wallet."
   };
 
   function explainError(evt) {
